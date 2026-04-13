@@ -225,29 +225,36 @@ export default function CreatePage() {
               + Añadir
             </button>
           </div>
+          {/* Cabeceras de columna */}
+          <div className="flex gap-2 mb-1 px-0.5">
+            <span className="flex-1 text-xs text-muted">Nombre</span>
+            <span className="w-24 shrink-0 text-xs text-muted">Cantidad</span>
+            <span className="w-20 shrink-0 text-xs text-muted">Unidad</span>
+            {ingredients.length > 1 && <span className="w-7 shrink-0" />}
+          </div>
           <div className="flex flex-col gap-2">
             {ingredients.map((ing, i) => (
               <div key={i} className="flex gap-2 items-center">
                 <input
                   type="text"
-                  placeholder="Ingrediente"
+                  placeholder="ej: Tomate"
                   value={ing.name}
                   onChange={(e) => updateIngredient(i, 'name', e.target.value)}
-                  className="form-input flex-1"
+                  className="ing-input flex-1"
                 />
                 <input
                   type="text"
-                  placeholder="Cantidad"
+                  placeholder="2"
                   value={ing.amount}
                   onChange={(e) => updateIngredient(i, 'amount', e.target.value)}
-                  className="form-input w-24"
+                  className="ing-input w-24 shrink-0"
                 />
                 <input
                   type="text"
-                  placeholder="Unidad"
+                  placeholder="kg, tazas…"
                   value={ing.unit}
                   onChange={(e) => updateIngredient(i, 'unit', e.target.value)}
-                  className="form-input w-20"
+                  className="ing-input w-20 shrink-0"
                 />
                 {ingredients.length > 1 && (
                   <button type="button" onClick={() => removeIngredient(i)} className="shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -341,6 +348,15 @@ export default function CreatePage() {
         }
         .form-input:focus { border-color: #e85d04; background: #fff; }
         .form-input::placeholder { color: #a0a0a0; }
+        .ing-input {
+          padding: 0.625rem 0.875rem;
+          font-size: 0.875rem; background: #f7f7f7;
+          border: 1px solid #f0f0f0; border-radius: 0.75rem;
+          outline: none; transition: border-color 0.15s, background-color 0.15s;
+          font-family: inherit; min-width: 0;
+        }
+        .ing-input:focus { border-color: #e85d04; background: #fff; }
+        .ing-input::placeholder { color: #a0a0a0; }
       `}</style>
     </div>
   )

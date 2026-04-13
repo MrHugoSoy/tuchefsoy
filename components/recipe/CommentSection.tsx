@@ -44,7 +44,7 @@ export default function CommentSection({ recipeId }: CommentSectionProps) {
 
     const { data, error } = await supabase
       .from('recipe_comments')
-      .insert({ recipe_id: recipeId, author_id: user.id, content: content.trim() })
+      .insert({ recipe_id: recipeId, user_id: user.id, content: content.trim() })
       .select('*, author:profiles(*)')
       .single()
 
