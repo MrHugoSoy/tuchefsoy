@@ -61,8 +61,8 @@ export default function Topbar() {
             Explorar
           </Link>
           {user && (
-            <Link href="/mis-recetas" className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors">
-              Mis recetas
+            <Link href="/perfil" className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors">
+              Mi perfil
             </Link>
           )}
         </nav>
@@ -112,9 +112,6 @@ export default function Topbar() {
                   </div>
                   <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
                     Mi perfil
-                  </Link>
-                  <Link href="/mis-recetas" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
-                    Mis recetas
                   </Link>
                   <button
                     onClick={() => { setMenuOpen(false); signOut() }}
