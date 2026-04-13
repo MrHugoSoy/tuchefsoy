@@ -1,75 +1,132 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Topbar() {
+  const { user, loading, openModal, signOut } = useAuth()
   const [search, setSearch] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
+  const displayName =
+    (user?.user_metadata?.full_name as string) ??
+    (user?.user_metadata?.name as string) ??
+    user?.email?.split('@')[0] ??
+    ''
+  const initials = displayName.slice(0, 2).toUpperCase()
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-[#f0f0f0]">
+    <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
+
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex-shrink-0 flex items-center gap-2 font-semibold text-xl tracking-tight text-[#111]"
-        >
-          <span className="text-[#e85d04]">Tu</span>
+        <Link href="/" className="shrink-0 flex items-center gap-0.5 font-semibold text-xl tracking-tight text-[#111]">
+          <span className="text-brand">Tu</span>
           <span>ChefSoy</span>
         </Link>
 
         {/* Buscador */}
         <div className="flex-1 max-w-md">
           <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#737373]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-              />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
             </svg>
             <input
               type="text"
               placeholder="Buscar recetas..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-[#f7f7f7] border border-[#f0f0f0] rounded-full outline-none focus:border-[#e85d04] focus:bg-white transition-colors placeholder:text-[#a0a0a0]"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-[#f7f7f7] border border-border rounded-full outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0]"
             />
           </div>
         </div>
 
         {/* Nav */}
         <nav className="hidden md:flex items-center gap-1 text-sm">
-          <Link
-            href="/"
-            className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors"
-          >
+          <Link href="/" className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors">
             Explorar
           </Link>
-          <Link
-            href="/mis-recetas"
-            className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors"
-          >
-            Mis recetas
-          </Link>
+          {user && (
+            <Link href="/mis-recetas" className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors">
+              Mis recetas
+            </Link>
+          )}
         </nav>
 
-        {/* CTA */}
-        <Link
-          href="/nueva-receta"
-          className="ml-auto flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#e85d04] hover:bg-[#c94e00] rounded-full transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="hidden sm:inline">Subir receta</span>
-        </Link>
+        <div className="ml-auto flex items-center gap-2">
+          {/* Subir receta / Login */}
+          {user ? (
+            <Link
+              href="/create"
+              className="shrink-0 flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="hidden sm:inline">Subir receta</span>
+            </Link>
+          ) : (
+            <button
+              onClick={() => openModal('login')}
+              className="shrink-0 px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
+            >
+              Iniciar sesión
+            </button>
+          )}
+
+          {/* Avatar dropdown */}
+          {!loading && user && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="w-8 h-8 rounded-full overflow-hidden border border-border shrink-0 focus:outline-none focus:ring-2 focus:ring-brand"
+              >
+                {avatarUrl ? (
+                  <Image src={avatarUrl} alt={displayName} width={32} height={32} className="object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#fff5ee] text-brand text-xs font-semibold">
+                    {initials}
+                  </div>
+                )}
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 top-10 w-44 bg-white border border-border rounded-xl shadow-lg py-1 z-50">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-sm font-medium text-[#111] truncate">{displayName}</p>
+                    <p className="text-xs text-muted truncate">{user.email}</p>
+                  </div>
+                  <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
+                    Mi perfil
+                  </Link>
+                  <Link href="/mis-recetas" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
+                    Mis recetas
+                  </Link>
+                  <button
+                    onClick={() => { setMenuOpen(false); signOut() }}
+                    className="w-full text-left px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors border-t border-border"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

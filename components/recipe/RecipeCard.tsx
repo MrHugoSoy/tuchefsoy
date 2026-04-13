@@ -32,7 +32,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
 
   return (
     <Link
-      href={`/recetas/${recipe.id}`}
+      href={`/recipe/${recipe.id}`}
       className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow"
     >
       {/* Imagen */}

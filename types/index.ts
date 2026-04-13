@@ -11,6 +11,12 @@ export type Category =
 
 export type Difficulty = 'Fácil' | 'Media' | 'Difícil'
 
+export interface Ingredient {
+  name: string
+  amount: string
+  unit: string
+}
+
 export interface Profile {
   id: string
   username: string
@@ -25,13 +31,14 @@ export interface Recipe {
   title: string
   description: string | null
   image_url: string | null
-  prep_time: number // minutes
-  cook_time: number // minutes
+  prep_time: number   // minutes
+  cook_time: number   // minutes
   servings: number
   difficulty: Difficulty
   category: Category
-  ingredients: string[]
+  ingredients: Ingredient[]
   steps: string[]
+  tags: string[]
   likes_count: number
   author_id: string
   author?: Profile
@@ -46,4 +53,12 @@ export interface RecipeComment {
   author?: Profile
   content: string
   created_at: string
+}
+
+export interface ChefRecommendation {
+  id: string
+  title: string
+  match_percentage: number
+  missing_ingredients: string[]
+  category: Category
 }
