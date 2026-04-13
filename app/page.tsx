@@ -3,58 +3,6 @@ import ChefAssistant from '@/components/ai/ChefAssistant'
 import { createClient } from '@/lib/supabase-server'
 import type { Recipe } from '@/types'
 
-// Fallback mock data for when the DB is empty
-const MOCK_RECIPES: Recipe[] = [
-  {
-    id: '1', title: 'Tortilla española con pimientos',
-    description: 'La tortilla de siempre, jugosa por dentro y con un toque de pimiento asado.',
-    image_url: null, prep_time: 15, cook_time: 20, servings: 4, difficulty: 'Fácil',
-    category: 'Comidas', ingredients: [], steps: [], tags: [], likes_count: 142,
-    author_id: 'u1', author: { id: 'u1', username: 'maricocinera', full_name: 'Mari García', avatar_url: null, bio: null, created_at: '' },
-    created_at: '', updated_at: '',
-  },
-  {
-    id: '2', title: 'Bizcocho de limón y yogur',
-    description: 'Esponjoso, húmedo y con un glaseado de limón que no puedes resistir.',
-    image_url: null, prep_time: 10, cook_time: 35, servings: 8, difficulty: 'Fácil',
-    category: 'Postres', ingredients: [], steps: [], tags: [], likes_count: 89,
-    author_id: 'u2', author: { id: 'u2', username: 'pastelesconalma', full_name: 'Carlos Ruiz', avatar_url: null, bio: null, created_at: '' },
-    created_at: '', updated_at: '',
-  },
-  {
-    id: '3', title: 'Bowl de açaí con frutas del bosque',
-    description: 'Desayuno energético y vegano cargado de antioxidantes.',
-    image_url: null, prep_time: 10, cook_time: 0, servings: 2, difficulty: 'Fácil',
-    category: 'Desayunos', ingredients: [], steps: [], tags: [], likes_count: 204,
-    author_id: 'u3', author: { id: 'u3', username: 'verdeyvivo', full_name: 'Laura Sánchez', avatar_url: null, bio: null, created_at: '' },
-    created_at: '', updated_at: '',
-  },
-  {
-    id: '4', title: 'Ramen casero con caldo de miso',
-    description: 'Un ramen profundo y reconfortante preparado desde cero.',
-    image_url: null, prep_time: 30, cook_time: 90, servings: 2, difficulty: 'Difícil',
-    category: 'Cenas', ingredients: [], steps: [], tags: [], likes_count: 317,
-    author_id: 'u4', author: { id: 'u4', username: 'umamimaster', full_name: 'Pedro López', avatar_url: null, bio: null, created_at: '' },
-    created_at: '', updated_at: '',
-  },
-  {
-    id: '5', title: 'Smoothie verde detox',
-    description: 'Espinacas, pepino, manzana y jengibre. El reset que tu cuerpo pide.',
-    image_url: null, prep_time: 5, cook_time: 0, servings: 1, difficulty: 'Fácil',
-    category: 'Bebidas', ingredients: [], steps: [], tags: [], likes_count: 76,
-    author_id: 'u5', author: { id: 'u5', username: 'jugosvitales', full_name: 'Ana Martínez', avatar_url: null, bio: null, created_at: '' },
-    created_at: '', updated_at: '',
-  },
-  {
-    id: '6', title: 'Hummus cremoso con pimentón ahumado',
-    description: 'Receta vegana sin gluten. Perfecto para mojar con pan de pita o crudités.',
-    image_url: null, prep_time: 10, cook_time: 0, servings: 6, difficulty: 'Fácil',
-    category: 'Vegano', ingredients: [], steps: [], tags: [], likes_count: 133,
-    author_id: 'u1', author: { id: 'u1', username: 'maricocinera', full_name: 'Mari García', avatar_url: null, bio: null, created_at: '' },
-    created_at: '', updated_at: '',
-  },
-]
-
 export default async function HomePage() {
   const supabase = await createClient()
   const { data } = await supabase
@@ -63,8 +11,7 @@ export default async function HomePage() {
     .order('created_at', { ascending: false })
     .limit(30)
 
-  const recipes: Recipe[] = (data as Recipe[] | null) ?? []
-  const feed = recipes.length > 0 ? recipes : MOCK_RECIPES
+  const feed: Recipe[] = (data as Recipe[] | null) ?? []
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

@@ -5,7 +5,8 @@
       "Bash(npx vercel:*)",
       "Bash(gh --version)",
       "Bash(xargs ls:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(node -e ':*)"
     ]
   }
 }
