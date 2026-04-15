@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import RecipeCard from '@/components/recipe/RecipeCard'
@@ -49,7 +50,7 @@ export default async function ProfilePage({
   const totalRecipes = recipes.length
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="max-w-[1400px] mx-auto px-4 py-10">
 
       {/* Profile header */}
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10 pb-10 border-b border-border">
@@ -117,11 +118,24 @@ export default async function ProfilePage({
           <h2 className="text-xl font-semibold">
             {isOwn ? 'Mis recetas' : `Recetas de ${p.full_name ?? p.username}`}
           </h2>
-          <span className="text-sm text-muted">{totalRecipes} {totalRecipes === 1 ? 'receta' : 'recetas'}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted">{totalRecipes} {totalRecipes === 1 ? 'receta' : 'recetas'}</span>
+            {isOwn && (
+              <Link
+                href="/create"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Nueva receta
+              </Link>
+            )}
+          </div>
         </div>
 
         {recipes.length > 0 ? (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
             {recipes.map((recipe) => (
               <div key={recipe.id} className="break-inside-avoid">
                 <RecipeCard recipe={recipe} />
@@ -140,9 +154,17 @@ export default async function ProfilePage({
             <h3 className="text-lg font-semibold mb-1">
               {isOwn ? 'Aún no tienes recetas' : 'Sin recetas aún'}
             </h3>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted mb-4">
               {isOwn ? 'Comparte tu primera receta con la comunidad.' : 'Este usuario aún no ha compartido recetas.'}
             </p>
+            {isOwn && (
+              <Link
+                href="/create"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
+              >
+                Subir mi primera receta
+              </Link>
+            )}
           </div>
         )}
       </div>
