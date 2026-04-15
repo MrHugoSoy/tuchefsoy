@@ -22,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-[#111]">
         <AuthProvider>
-          <Topbar />
+          <Suspense fallback={<div className="h-16 border-b border-border bg-white" />}>
+            <Topbar />
+          </Suspense>
           <Suspense fallback={<div className="h-12 border-b border-[#f0f0f0] bg-white" />}>
             <CategoryBar />
           </Suspense>

@@ -3,13 +3,21 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
 export default function Topbar() {
   const { user, loading, openModal, signOut } = useAuth()
-  const [search, setSearch] = useState('')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // Sync search input with URL
+  useEffect(() => {
+    setSearch(searchParams.get('q') ?? '')
+  }, [searchParams])
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -20,6 +28,21 @@ export default function Topbar() {
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = search.trim()
+    if (trimmed) {
+      router.push(`/?q=${encodeURIComponent(trimmed)}`)
+    } else {
+      router.push('/')
+    }
+  }
+
+  function handleClear() {
+    setSearch('')
+    router.push('/')
+  }
 
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
   const displayName =
@@ -40,7 +63,7 @@ export default function Topbar() {
         </Link>
 
         {/* Buscador */}
-        <div className="flex-1 max-w-md">
+        <form onSubmit={handleSearch} className="flex-1 max-w-md">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -50,10 +73,21 @@ export default function Topbar() {
               placeholder="Buscar recetas..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-[#f7f7f7] border border-border rounded-full outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0]"
+              className="w-full pl-9 pr-9 py-2 text-sm bg-[#f7f7f7] border border-border rounded-full outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0]"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted hover:text-[#111] transition-colors"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
-        </div>
+        </form>
 
         {/* Nav */}
         <nav className="hidden md:flex items-center gap-1 text-sm">
@@ -68,7 +102,6 @@ export default function Topbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Subir receta / Login */}
           {user ? (
             <Link
               href="/create"
@@ -88,7 +121,6 @@ export default function Topbar() {
             </button>
           )}
 
-          {/* Avatar dropdown */}
           {!loading && user && (
             <div className="relative" ref={menuRef}>
               <button

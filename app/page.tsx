@@ -4,12 +4,13 @@ import { createClient } from '@/lib/supabase-server'
 import type { Recipe, Category } from '@/types'
 
 interface HomePageProps {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; q?: string }>
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { category } = await searchParams
+  const { category, q } = await searchParams
   const activeCategory = (category as Category) || 'Todo'
+  const searchQuery = q?.trim() ?? ''
 
   const supabase = await createClient()
 
@@ -23,8 +24,24 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     query = query.eq('category', activeCategory)
   }
 
+  if (searchQuery) {
+    query = query.ilike('title', `%${searchQuery}%`)
+  }
+
   const { data } = await query
   const feed: Recipe[] = (data as Recipe[] | null) ?? []
+
+  // Determine heading
+  let heading = 'Descubre recetas'
+  let subheading = 'Inspírate con las mejores recetas de nuestra comunidad'
+
+  if (searchQuery) {
+    heading = `Resultados para "${searchQuery}"`
+    subheading = `${feed.length} ${feed.length === 1 ? 'receta encontrada' : 'recetas encontradas'}`
+  } else if (activeCategory !== 'Todo') {
+    heading = activeCategory
+    subheading = `Recetas de ${activeCategory.toLowerCase()} para inspirarte`
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-8">
@@ -33,14 +50,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         {/* Feed principal */}
         <div>
           <div className="mb-7">
-            <h1 className="text-2xl font-semibold mb-1">
-              {activeCategory === 'Todo' ? 'Descubre recetas' : activeCategory}
-            </h1>
-            <p className="text-sm text-muted">
-              {activeCategory === 'Todo'
-                ? 'Inspírate con las mejores recetas de nuestra comunidad'
-                : `Recetas de ${activeCategory.toLowerCase()} para inspirarte`}
-            </p>
+            <h1 className="text-2xl font-semibold mb-1">{heading}</h1>
+            <p className="text-sm text-muted">{subheading}</p>
           </div>
 
           {/* Grid 4 columnas */}
@@ -62,12 +73,18 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 </svg>
               </div>
               <h2 className="text-lg font-semibold mb-1">
-                {activeCategory === 'Todo' ? 'Sin recetas aún' : `Sin recetas en ${activeCategory}`}
+                {searchQuery
+                  ? `No se encontraron recetas para "${searchQuery}"`
+                  : activeCategory === 'Todo'
+                    ? 'Sin recetas aún'
+                    : `Sin recetas en ${activeCategory}`}
               </h2>
               <p className="text-sm text-muted">
-                {activeCategory === 'Todo'
-                  ? 'Sé el primero en compartir una receta.'
-                  : 'Prueba con otra categoría o sé el primero en publicar aquí.'}
+                {searchQuery
+                  ? 'Intenta con otros términos de búsqueda.'
+                  : activeCategory === 'Todo'
+                    ? 'Sé el primero en compartir una receta.'
+                    : 'Prueba con otra categoría o sé el primero en publicar aquí.'}
               </p>
             </div>
           )}
