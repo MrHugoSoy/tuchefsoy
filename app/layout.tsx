@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import Script from 'next/script'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
@@ -20,6 +21,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${geist.variable} h-full antialiased`}>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8458170443836025"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-white text-[#111]">
         <AuthProvider>
           <Suspense fallback={<div className="h-16 border-b border-border bg-white" />}>
