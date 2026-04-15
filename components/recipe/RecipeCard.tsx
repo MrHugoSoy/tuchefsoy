@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -19,12 +19,13 @@ const DIFFICULTY_COLOR: Record<Recipe['difficulty'], string> = {
 }
 
 export default function RecipeCard({ recipe }: RecipeCardProps) {
-  const { user } = useAuth()
+  const { user, openModal } = useAuth()
   const router = useRouter()
   const supabase = createClient()
 
   const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(recipe.likes_count)
+  const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -32,13 +33,45 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   const isOwner = user?.id === recipe.author_id
   const totalTime = recipe.prep_time + recipe.cook_time
 
-  function handleLike(e: React.MouseEvent) {
+  // Check if user already liked this recipe
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('recipe_likes')
+      .select('id')
+      .eq('recipe_id', recipe.id)
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setLiked(true)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, recipe.id])
+
+  async function handleLike(e: React.MouseEvent) {
     e.preventDefault()
-    setLiked((prev) => {
-      const next = !prev
-      setLikes((l) => (next ? l + 1 : l - 1))
-      return next
-    })
+    e.stopPropagation()
+
+    if (!user) {
+      openModal('login')
+      return
+    }
+    if (loading) return
+    setLoading(true)
+
+    const nextLiked = !liked
+    // Optimistic update
+    setLiked(nextLiked)
+    setLikes((l) => l + (nextLiked ? 1 : -1))
+
+    if (nextLiked) {
+      await supabase.from('recipe_likes').insert({ recipe_id: recipe.id, user_id: user.id })
+      await supabase.from('recipes').update({ likes_count: likes + 1 }).eq('id', recipe.id)
+    } else {
+      await supabase.from('recipe_likes').delete().eq('recipe_id', recipe.id).eq('user_id', user.id)
+      await supabase.from('recipes').update({ likes_count: likes - 1 }).eq('id', recipe.id)
+    }
+    setLoading(false)
   }
 
   function handleMenuToggle(e: React.MouseEvent) {
@@ -65,7 +98,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     e.stopPropagation()
     setDeleting(true)
 
-    // Delete image from storage if exists
     if (recipe.image_url) {
       const path = recipe.image_url.split('/storage/v1/object/public/recipes/')[1]
       if (path) {
@@ -73,7 +105,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       }
     }
 
-    // Delete related data
     await supabase.from('recipe_likes').delete().eq('recipe_id', recipe.id)
     await supabase.from('recipe_comments').delete().eq('recipe_id', recipe.id)
     await supabase.from('recipes').delete().eq('id', recipe.id)
