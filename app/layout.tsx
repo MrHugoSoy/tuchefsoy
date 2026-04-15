@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
@@ -22,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col bg-white text-[#111]">
         <AuthProvider>
           <Topbar />
-          <CategoryBar />
+          <Suspense fallback={<div className="h-12 border-b border-[#f0f0f0] bg-white" />}>
+            <CategoryBar />
+          </Suspense>
           <main className="flex-1">{children}</main>
           <AuthModal />
           <footer className="border-t border-border mt-16">
