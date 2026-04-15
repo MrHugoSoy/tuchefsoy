@@ -31,7 +31,7 @@ export default function Topbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
+      <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-4">
 
         {/* Logo */}
         <Link href="/" className="shrink-0 flex items-center gap-0.5 font-semibold text-xl tracking-tight text-[#111]">

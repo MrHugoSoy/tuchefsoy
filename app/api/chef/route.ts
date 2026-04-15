@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import type { ChefRecommendation } from '@/types'
 
 const client = new Anthropic()
+const DAILY_LIMIT = 3
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,45 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient()
+
+    // Get user ID if logged in
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Get IP for rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      ?? request.headers.get('x-real-ip')
+      ?? 'unknown'
+
+    // Check daily usage
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    let usageQuery = supabase
+      .from('chef_usage')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', today.toISOString())
+
+    if (user) {
+      usageQuery = usageQuery.eq('user_id', user.id)
+    } else {
+      usageQuery = usageQuery.eq('user_ip', ip)
+    }
+
+    const { count } = await usageQuery
+
+    if ((count ?? 0) >= DAILY_LIMIT) {
+      return NextResponse.json({
+        error: `Has alcanzado el límite de ${DAILY_LIMIT} consultas diarias. ¡Vuelve mañana!`,
+      }, { status: 429 })
+    }
+
+    // Log usage
+    await supabase.from('chef_usage').insert({
+      user_ip: ip,
+      user_id: user?.id ?? null,
+    })
+
+    // Fetch recipes from database
     const { data: recipes } = await supabase
       .from('recipes')
       .select('id, title, ingredients, category')

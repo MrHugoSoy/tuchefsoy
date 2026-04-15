@@ -1,31 +1,50 @@
 import RecipeCard from '@/components/recipe/RecipeCard'
 import ChefAssistant from '@/components/ai/ChefAssistant'
 import { createClient } from '@/lib/supabase-server'
-import type { Recipe } from '@/types'
+import type { Recipe, Category } from '@/types'
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams: Promise<{ category?: string }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { category } = await searchParams
+  const activeCategory = (category as Category) || 'Todo'
+
   const supabase = await createClient()
-  const { data } = await supabase
+
+  let query = supabase
     .from('recipes')
     .select('*, author:profiles(*)')
     .order('created_at', { ascending: false })
     .limit(30)
 
+  if (activeCategory !== 'Todo') {
+    query = query.eq('category', activeCategory)
+  }
+
+  const { data } = await query
   const feed: Recipe[] = (data as Recipe[] | null) ?? []
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-[1400px] mx-auto px-4 py-8">
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8">
 
         {/* Feed principal */}
         <div>
           <div className="mb-7">
-            <h1 className="text-2xl font-semibold mb-1">Descubre recetas</h1>
-            <p className="text-sm text-muted">Inspírate con las mejores recetas de nuestra comunidad</p>
+            <h1 className="text-2xl font-semibold mb-1">
+              {activeCategory === 'Todo' ? 'Descubre recetas' : activeCategory}
+            </h1>
+            <p className="text-sm text-muted">
+              {activeCategory === 'Todo'
+                ? 'Inspírate con las mejores recetas de nuestra comunidad'
+                : `Recetas de ${activeCategory.toLowerCase()} para inspirarte`}
+            </p>
           </div>
 
-          {/* Grid estilo Pinterest */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
+          {/* Grid 4 columnas */}
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
             {feed.map((recipe) => (
               <div key={recipe.id} className="break-inside-avoid">
                 <RecipeCard recipe={recipe} />
@@ -42,8 +61,14 @@ export default async function HomePage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-lg font-semibold mb-1">Sin recetas aún</h2>
-              <p className="text-sm text-muted">Sé el primero en compartir una receta.</p>
+              <h2 className="text-lg font-semibold mb-1">
+                {activeCategory === 'Todo' ? 'Sin recetas aún' : `Sin recetas en ${activeCategory}`}
+              </h2>
+              <p className="text-sm text-muted">
+                {activeCategory === 'Todo'
+                  ? 'Sé el primero en compartir una receta.'
+                  : 'Prueba con otra categoría o sé el primero en publicar aquí.'}
+              </p>
             </div>
           )}
         </div>

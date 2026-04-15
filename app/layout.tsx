@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1">{children}</main>
           <AuthModal />
           <footer className="border-t border-border mt-16">
-            <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
+            <div className="max-w-[1400px] mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
               <span>
                 © {new Date().getFullYear()}{' '}
                 <span className="font-semibold text-[#111]">TuChefSoy</span>
