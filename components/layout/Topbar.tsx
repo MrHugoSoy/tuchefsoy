@@ -60,8 +60,8 @@ export default function Topbar() {
   <Image
     src="/logo.svg"
     alt="TuChefSoy"
-    width={160}
-    height={78}
+    width={120}
+    height={58}
     priority
   />
 </Link>
