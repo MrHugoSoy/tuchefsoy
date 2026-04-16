@@ -56,7 +56,6 @@ export default function Topbar() {
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-4">
 
-        // Dentro del JSX, donde va el logo:
 <Link href="/">
   <Image
     src="/logo.svg"
