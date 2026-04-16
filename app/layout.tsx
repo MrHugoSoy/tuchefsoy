@@ -16,6 +16,9 @@ const geist = Geist({
 export const metadata: Metadata = {
   title: 'TuChefSoy — Recetas para todos',
   description: 'Descubre, comparte y crea recetas increíbles con la comunidad de TuChefSoy.',
+  icons: {
+    icon: '/logo.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

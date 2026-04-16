@@ -56,11 +56,16 @@ export default function Topbar() {
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-4">
 
-        {/* Logo */}
-        <Link href="/" className="shrink-0 flex items-center gap-0.5 font-semibold text-xl tracking-tight text-[#111]">
-          <span className="text-brand">Tu</span>
-          <span>ChefSoy</span>
-        </Link>
+        // Dentro del JSX, donde va el logo:
+<Link href="/">
+  <Image
+    src="/logo.svg"
+    alt="TuChefSoy"
+    width={160}
+    height={78}
+    priority
+  />
+</Link>
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="flex-1 max-w-md">
