@@ -89,6 +89,17 @@ export default async function RecipePage({
     initialLiked = !!likeRow
   }
 
+  // Fetch related recipes — same category, exclude current
+  const { data: relatedData } = await supabase
+    .from('recipes')
+    .select('id, title, image_url, prep_time, cook_time, difficulty, category, likes_count, author:profiles(username, full_name, avatar_url)')
+    .eq('category', r.category)
+    .neq('id', id)
+    .order('likes_count', { ascending: false })
+    .limit(4)
+
+  const related: Recipe[] = (relatedData as Recipe[] | null) ?? []
+
   const totalTime = r.prep_time + r.cook_time
   const viewsCount = (r.views_count ?? 0) + 1
 
@@ -278,7 +289,6 @@ export default async function RecipePage({
               <h3 className="text-sm font-semibold mb-4 text-muted uppercase tracking-wide">Resumen</h3>
 
               <div className="flex flex-col gap-4">
-                {/* Rating in sidebar */}
                 {(r.rating_count ?? 0) > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted flex items-center gap-1">
@@ -335,6 +345,74 @@ export default async function RecipePage({
             </div>
           </div>
         </div>
+
+        {/* Related recipes */}
+        {related.length > 0 && (
+          <div className="mt-16 pt-10 border-t border-border no-print">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold">También te puede gustar</h2>
+              <Link
+                href={`/?category=${encodeURIComponent(r.category)}`}
+                className="text-sm text-brand hover:underline font-medium"
+              >
+                Ver más de {r.category}
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {related.map((rel) => {
+                const relTime = rel.prep_time + rel.cook_time
+                return (
+                  <Link
+                    key={rel.id}
+                    href={`/recipe/${rel.id}`}
+                    className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className="relative aspect-[4/3] bg-[#f7f7f7] overflow-hidden">
+                      {rel.image_url ? (
+                        <Image
+                          src={rel.image_url}
+                          alt={rel.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-[#d0d0d0]">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-semibold text-[#111] text-sm leading-snug mb-2 line-clamp-2">
+                        {rel.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-[#737373]">
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {relTime} min
+                        </span>
+                        <span
+                          className="font-medium"
+                          style={{ color: DIFFICULTY_COLOR[rel.difficulty] }}
+                        >
+                          {rel.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   )
