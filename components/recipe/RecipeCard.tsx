@@ -216,21 +216,13 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           <p className="text-sm text-[#737373] line-clamp-2 mb-3">{recipe.description}</p>
         )}
 
-        {/* Meta — sin vistas */}
+        {/* Meta */}
         <div className="flex items-center gap-3 text-xs text-[#737373] mb-3">
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {totalTime} min
-          </span>
-
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
-            </svg>
-            {recipe.servings} {recipe.servings === 1 ? 'porción' : 'porciones'}
           </span>
 
           <span className="flex items-center gap-1 font-medium" style={{ color: DIFFICULTY_COLOR[recipe.difficulty] }}>
