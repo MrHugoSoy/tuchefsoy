@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import NotificationsBell from '@/components/notifications/NotificationsBell'
 
 export default function Topbar() {
   const { user, loading, openModal, signOut } = useAuth()
@@ -14,7 +15,6 @@ export default function Topbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Sync search input with URL
   useEffect(() => {
     setSearch(searchParams.get('q') ?? '')
   }, [searchParams])
@@ -56,15 +56,15 @@ export default function Topbar() {
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-4">
 
-<Link href="/">
-  <Image
-    src="/logo.svg"
-    alt="TuChefSoy"
-    width={120}
-    height={58}
-    priority
-  />
-</Link>
+        <Link href="/">
+          <Image
+            src="/logo.svg"
+            alt="TuChefSoy"
+            width={120}
+            height={58}
+            priority
+          />
+        </Link>
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="flex-1 max-w-md">
@@ -124,6 +124,9 @@ export default function Topbar() {
               Iniciar sesión
             </button>
           )}
+
+          {/* Campanita de notificaciones */}
+          {!loading && user && <NotificationsBell />}
 
           {!loading && user && (
             <div className="relative" ref={menuRef}>

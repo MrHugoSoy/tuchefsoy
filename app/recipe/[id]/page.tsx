@@ -276,11 +276,21 @@ export default async function RecipePage({
             </div>
 
             <div className="flex items-center gap-3 mb-12 pb-10 border-b border-border no-print">
-              <LikeButton recipeId={id} initialLikes={r.likes_count} initialLiked={initialLiked} />
+              <LikeButton
+                recipeId={id}
+                initialLikes={r.likes_count}
+                initialLiked={initialLiked}
+                recipeTitle={r.title}
+                recipeAuthorId={r.author_id}
+              />
             </div>
 
             <div className="no-print">
-              <CommentSection recipeId={id} />
+              <CommentSection
+                recipeId={id}
+                recipeTitle={r.title}
+                recipeAuthorId={r.author_id}
+              />
             </div>
           </div>
 

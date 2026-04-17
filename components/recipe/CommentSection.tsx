@@ -8,6 +8,8 @@ import type { RecipeComment } from '@/types'
 
 interface CommentSectionProps {
   recipeId: string
+  recipeTitle?: string
+  recipeAuthorId?: string
 }
 
 function timeAgo(date: string) {
@@ -18,7 +20,7 @@ function timeAgo(date: string) {
   return `${Math.floor(diff / 86400)}d`
 }
 
-export default function CommentSection({ recipeId }: CommentSectionProps) {
+export default function CommentSection({ recipeId, recipeTitle, recipeAuthorId }: CommentSectionProps) {
   const { user, openModal } = useAuth()
   const supabase = createClient()
   const [comments, setComments] = useState<RecipeComment[]>([])
@@ -51,6 +53,22 @@ export default function CommentSection({ recipeId }: CommentSectionProps) {
     if (!error && data) {
       setComments((prev) => [data as RecipeComment, ...prev])
       setContent('')
+
+      // Notify recipe author (don't notify yourself)
+      if (recipeAuthorId && recipeAuthorId !== user.id) {
+        const senderName = (user.user_metadata?.full_name as string)
+          ?? (user.user_metadata?.name as string)
+          ?? user.email?.split('@')[0]
+          ?? 'Alguien'
+
+        await supabase.from('notifications').insert({
+          user_id: recipeAuthorId,
+          type: 'comment',
+          recipe_id: recipeId,
+          from_user_id: user.id,
+          message: `${senderName} comentó en "${recipeTitle ?? 'tu receta'}": "${content.trim().slice(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
+        })
+      }
     }
     setLoading(false)
   }
@@ -61,7 +79,6 @@ export default function CommentSection({ recipeId }: CommentSectionProps) {
         Comentarios <span className="text-muted font-normal text-base">({comments.length})</span>
       </h2>
 
-      {/* Input */}
       <form onSubmit={handleSubmit} className="flex gap-3 mb-7">
         <div className="w-8 h-8 rounded-full bg-[#f0f0f0] shrink-0 flex items-center justify-center text-xs text-muted font-semibold overflow-hidden">
           {user?.user_metadata?.avatar_url ? (
@@ -89,7 +106,6 @@ export default function CommentSection({ recipeId }: CommentSectionProps) {
         </div>
       </form>
 
-      {/* Lista */}
       <div className="flex flex-col gap-5">
         {comments.length === 0 && (
           <p className="text-sm text-muted text-center py-6">Sé el primero en comentar.</p>

@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -8,9 +7,11 @@ interface LikeButtonProps {
   recipeId: string
   initialLikes: number
   initialLiked: boolean
+  recipeTitle?: string
+  recipeAuthorId?: string
 }
 
-export default function LikeButton({ recipeId, initialLikes, initialLiked }: LikeButtonProps) {
+export default function LikeButton({ recipeId, initialLikes, initialLiked, recipeTitle, recipeAuthorId }: LikeButtonProps) {
   const { user, openModal } = useAuth()
   const supabase = createClient()
   const [liked, setLiked] = useState(initialLiked)
@@ -23,13 +24,28 @@ export default function LikeButton({ recipeId, initialLikes, initialLiked }: Lik
     setLoading(true)
 
     const nextLiked = !liked
-    // Optimistic update
     setLiked(nextLiked)
     setLikes((l) => l + (nextLiked ? 1 : -1))
 
     if (nextLiked) {
       await supabase.from('recipe_likes').insert({ recipe_id: recipeId, user_id: user.id })
       await supabase.from('recipes').update({ likes_count: likes + 1 }).eq('id', recipeId)
+
+      // Notify recipe author (don't notify yourself)
+      if (recipeAuthorId && recipeAuthorId !== user.id) {
+        const senderName = (user.user_metadata?.full_name as string)
+          ?? (user.user_metadata?.name as string)
+          ?? user.email?.split('@')[0]
+          ?? 'Alguien'
+
+        await supabase.from('notifications').insert({
+          user_id: recipeAuthorId,
+          type: 'like',
+          recipe_id: recipeId,
+          from_user_id: user.id,
+          message: `${senderName} le dio me gusta a "${recipeTitle ?? 'tu receta'}"`,
+        })
+      }
     } else {
       await supabase.from('recipe_likes').delete().eq('recipe_id', recipeId).eq('user_id', user.id)
       await supabase.from('recipes').update({ likes_count: likes - 1 }).eq('id', recipeId)
