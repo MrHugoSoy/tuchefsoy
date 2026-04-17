@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import LikeButton from '@/components/recipe/LikeButton'
 import CommentSection from '@/components/recipe/CommentSection'
 import SharePrintButtons from '@/components/recipe/SharePrintButtons'
+import StarRating from '@/components/recipe/StarRating'
 import type { Recipe } from '@/types'
 import type { Metadata } from 'next'
 
@@ -115,10 +116,10 @@ export default async function RecipePage({
       position: i + 1,
       text: step,
     })),
-    aggregateRating: r.likes_count > 0 ? {
+    aggregateRating: (r.rating_count ?? 0) > 0 ? {
       '@type': 'AggregateRating',
-      ratingValue: Math.min(5, 3 + (r.likes_count * 0.5)),
-      ratingCount: r.likes_count,
+      ratingValue: r.rating_avg ?? 0,
+      ratingCount: r.rating_count ?? 0,
       bestRating: 5,
       worstRating: 1,
     } : undefined,
@@ -135,21 +136,33 @@ export default async function RecipePage({
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           header, footer, nav, .no-print { display: none !important; }
-          body { background: white !important; color: black !important; font-size: 12pt; }
+          body { background: white !important; color: black !important; font-size: 10pt; line-height: 1.4; }
           .print-only { display: block !important; }
-          .max-w-4xl { max-width: 100% !important; }
+          .max-w-4xl { max-width: 100% !important; padding: 0 !important; }
           .grid { display: block !important; }
           .sticky { position: static !important; }
-          img { max-height: 300px; object-fit: cover; }
+          .aspect-16\\/7 { display: none !important; }
+          img { display: none !important; }
           a { color: black !important; text-decoration: none !important; }
           .rounded-\\[12px\\] { border-radius: 0 !important; }
-          @page { margin: 1.5cm; }
+          h1 { font-size: 18pt !important; margin-bottom: 4px !important; }
+          h2 { font-size: 13pt !important; margin-bottom: 6px !important; }
+          section { margin-bottom: 12px !important; }
+          .mb-6, .mb-8, .mb-10 { margin-bottom: 8px !important; }
+          .pb-8, .pb-10 { padding-bottom: 8px !important; }
+          .gap-6 { gap: 4px !important; }
+          .gap-4 { gap: 2px !important; }
+          .py-10 { padding-top: 0 !important; padding-bottom: 0 !important; }
+          .py-2\\.5 { padding-top: 2px !important; padding-bottom: 2px !important; }
+          .w-8.h-8 { width: 20px !important; height: 20px !important; font-size: 9pt !important; }
+          li { page-break-inside: avoid; }
+          .border-border { border-color: #ddd !important; }
+          @page { margin: 1cm; }
         }
       `}} />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
 
-        {/* Print header - only visible when printing */}
         <div className="print-only hidden mb-4">
           <p className="text-sm text-gray-500">tuchefsoy.com</p>
         </div>
@@ -182,8 +195,17 @@ export default async function RecipePage({
               </div>
               <h1 className="text-3xl font-semibold leading-tight mb-3">{r.title}</h1>
               {r.description && (
-                <p className="text-[#555] leading-relaxed">{r.description}</p>
+                <p className="text-[#555] leading-relaxed mb-4">{r.description}</p>
               )}
+
+              {/* Star Rating */}
+              <div className="no-print">
+                <StarRating
+                  recipeId={id}
+                  initialAvg={r.rating_avg ?? 0}
+                  initialCount={r.rating_count ?? 0}
+                />
+              </div>
             </div>
 
             {r.author && (
@@ -256,7 +278,19 @@ export default async function RecipePage({
               <h3 className="text-sm font-semibold mb-4 text-muted uppercase tracking-wide">Resumen</h3>
 
               <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
+                {/* Rating in sidebar */}
+                {(r.rating_count ?? 0) > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted flex items-center gap-1">
+                      <svg className="w-4 h-4 text-[#f59e0b]" fill="#f59e0b" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                      Calificación
+                    </span>
+                    <span className="text-sm font-semibold">{(r.rating_avg ?? 0).toFixed(1)} / 5</span>
+                  </div>
+                )}
+                <div className={`flex items-center justify-between ${(r.rating_count ?? 0) > 0 ? 'border-t border-border pt-4' : ''}`}>
                   <span className="text-sm text-muted">Tiempo total</span>
                   <span className="text-sm font-semibold">{totalTime} min</span>
                 </div>

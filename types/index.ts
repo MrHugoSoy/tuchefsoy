@@ -37,6 +37,8 @@ export interface Recipe {
   tags: string[]
   likes_count: number
   views_count: number
+  rating_avg: number
+  rating_count: number
   author_id: string
   author?: Profile
   created_at: string
