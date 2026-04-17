@@ -56,18 +56,12 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   async function handleLike(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-
-    if (!user) {
-      openModal('login')
-      return
-    }
+    if (!user) { openModal('login'); return }
     if (loading) return
     setLoading(true)
-
     const nextLiked = !liked
     setLiked(nextLiked)
     setLikes((l) => l + (nextLiked ? 1 : -1))
-
     if (nextLiked) {
       await supabase.from('recipe_likes').insert({ recipe_id: recipe.id, user_id: user.id })
       await supabase.from('recipes').update({ likes_count: likes + 1 }).eq('id', recipe.id)
@@ -101,18 +95,13 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     e.preventDefault()
     e.stopPropagation()
     setDeleting(true)
-
     if (recipe.image_url) {
       const path = recipe.image_url.split('/storage/v1/object/public/recipes/')[1]
-      if (path) {
-        await supabase.storage.from('recipes').remove([path])
-      }
+      if (path) await supabase.storage.from('recipes').remove([path])
     }
-
     await supabase.from('recipe_likes').delete().eq('recipe_id', recipe.id)
     await supabase.from('recipe_comments').delete().eq('recipe_id', recipe.id)
     await supabase.from('recipes').delete().eq('id', recipe.id)
-
     setDeleting(false)
     setMenuOpen(false)
     router.refresh()
@@ -227,6 +216,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           <p className="text-sm text-[#737373] line-clamp-2 mb-3">{recipe.description}</p>
         )}
 
+        {/* Meta — sin vistas */}
         <div className="flex items-center gap-3 text-xs text-[#737373] mb-3">
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,32 +239,35 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             </svg>
             {recipe.difficulty}
           </span>
-
-          {/* Vistas */}
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            {formatViews(recipe.views_count ?? 0)}
-          </span>
         </div>
 
+        {/* Autor + vistas */}
         {recipe.author && (
-          <div className="flex items-center gap-2 pt-3 border-t border-[#f0f0f0]">
-            <div className="w-6 h-6 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">
-              {recipe.author.avatar_url ? (
-                <Image src={recipe.author.avatar_url} alt={recipe.author.username} width={24} height={24} className="object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#737373]">
-                  {recipe.author.username[0].toUpperCase()}
-                </div>
-              )}
+          <div className="flex items-center justify-between pt-3 border-t border-[#f0f0f0]">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">
+                {recipe.author.avatar_url ? (
+                  <Image src={recipe.author.avatar_url} alt={recipe.author.username} width={24} height={24} className="object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#737373]">
+                    {recipe.author.username[0].toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs text-[#737373] truncate">
+                {recipe.author.full_name ?? recipe.author.username}
+              </span>
             </div>
-            <span className="text-xs text-[#737373] truncate">
-              {recipe.author.full_name ?? recipe.author.username}
+
+            {/* Vistas */}
+            <span className="flex items-center gap-1 text-xs text-[#a0a0a0] shrink-0 ml-2">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              {formatViews(recipe.views_count ?? 0)}
             </span>
           </div>
         )}
