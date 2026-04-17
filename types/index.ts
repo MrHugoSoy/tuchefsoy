@@ -8,15 +8,12 @@ export type Category =
   | 'Vegano'
   | 'Sin gluten'
   | 'Snacks'
-
 export type Difficulty = 'Fácil' | 'Media' | 'Difícil'
-
 export interface Ingredient {
   name: string
   amount: string
   unit: string
 }
-
 export interface Profile {
   id: string
   username: string
@@ -25,7 +22,6 @@ export interface Profile {
   bio: string | null
   created_at: string
 }
-
 export interface Recipe {
   id: string
   title: string
@@ -40,12 +36,12 @@ export interface Recipe {
   steps: string[]
   tags: string[]
   likes_count: number
+  views_count: number
   author_id: string
   author?: Profile
   created_at: string
   updated_at: string
 }
-
 export interface RecipeComment {
   id: string
   recipe_id: string
@@ -54,7 +50,6 @@ export interface RecipeComment {
   content: string
   created_at: string
 }
-
 export interface ChefRecommendation {
   id: string
   title: string

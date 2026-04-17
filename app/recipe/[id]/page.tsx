@@ -9,7 +9,6 @@ import type { Metadata } from 'next'
 
 const DIFFICULTY_COLOR = { Fácil: '#22c55e', Media: '#f59e0b', Difícil: '#ef4444' } as const
 
-// Dynamic metadata for SEO
 export async function generateMetadata({
   params,
 }: {
@@ -70,6 +69,12 @@ export default async function RecipePage({
 
   const r = recipe as Recipe
 
+  // Increment view count
+  await supabase
+    .from('recipes')
+    .update({ views_count: (r.views_count ?? 0) + 1 })
+    .eq('id', id)
+
   const { data: { user } } = await supabase.auth.getUser()
   let initialLiked = false
   if (user) {
@@ -83,8 +88,8 @@ export default async function RecipePage({
   }
 
   const totalTime = r.prep_time + r.cook_time
+  const viewsCount = (r.views_count ?? 0) + 1
 
-  // Recipe Schema (JSON-LD) for Google rich snippets
   const recipeSchema = {
     '@context': 'https://schema.org',
     '@type': 'Recipe',
@@ -245,6 +250,18 @@ export default async function RecipePage({
                 <div className="flex items-center justify-between border-t border-border pt-4">
                   <span className="text-sm text-muted">Ingredientes</span>
                   <span className="text-sm font-semibold">{r.ingredients.length}</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-border pt-4">
+                  <span className="text-sm text-muted flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Vistas
+                  </span>
+                  <span className="text-sm font-semibold">{viewsCount}</span>
                 </div>
               </div>
             </div>

@@ -18,6 +18,12 @@ const DIFFICULTY_COLOR: Record<Recipe['difficulty'], string> = {
   Difícil: '#ef4444',
 }
 
+function formatViews(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return String(n)
+}
+
 export default function RecipeCard({ recipe }: RecipeCardProps) {
   const { user, openModal } = useAuth()
   const router = useRouter()
@@ -33,7 +39,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   const isOwner = user?.id === recipe.author_id
   const totalTime = recipe.prep_time + recipe.cook_time
 
-  // Check if user already liked this recipe
   useEffect(() => {
     if (!user) return
     supabase
@@ -60,7 +65,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     setLoading(true)
 
     const nextLiked = !liked
-    // Optimistic update
     setLiked(nextLiked)
     setLikes((l) => l + (nextLiked ? 1 : -1))
 
@@ -126,7 +130,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       href={`/recipe/${recipe.id}`}
       className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow relative"
     >
-      {/* Imagen */}
       <div className="relative aspect-[4/3] bg-[#f7f7f7] overflow-hidden">
         {recipe.image_url ? (
           <Image
@@ -139,22 +142,16 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[#d0d0d0]">
             <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
 
-        {/* Badge categoría */}
         <span className="absolute top-3 left-3 px-2.5 py-1 text-xs font-medium bg-white/90 rounded-full text-[#555]">
           {recipe.category}
         </span>
 
-        {/* Botón like */}
         <button
           onClick={handleLike}
           aria-label={liked ? 'Quitar like' : 'Dar like'}
@@ -162,19 +159,14 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         >
           <svg
             className={`w-3.5 h-3.5 transition-colors ${liked ? 'fill-[#e85d04] stroke-[#e85d04]' : 'fill-none stroke-[#555]'}`}
-            viewBox="0 0 24 24"
-            strokeWidth={2}
+            viewBox="0 0 24 24" strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
           <span className={liked ? 'text-[#e85d04]' : 'text-[#555]'}>{likes}</span>
         </button>
 
-        {/* Menú del propietario */}
         {isOwner && (
           <div className="absolute bottom-3 right-3">
             <button
@@ -194,36 +186,25 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                   <div className="p-3">
                     <p className="text-xs text-[#555] mb-3">¿Eliminar esta receta? No se puede deshacer.</p>
                     <div className="flex gap-2">
-                      <button
-                        onClick={handleCancelDelete}
-                        className="flex-1 px-2 py-1.5 text-xs font-medium text-[#555] border border-border rounded-lg hover:bg-[#f7f7f7] transition-colors"
-                      >
-                        No
-                      </button>
-                      <button
-                        onClick={handleConfirmDelete}
-                        disabled={deleting}
-                        className="flex-1 px-2 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-60 rounded-lg transition-colors"
-                      >
+                      <button onClick={handleCancelDelete}
+                        className="flex-1 px-2 py-1.5 text-xs font-medium text-[#555] border border-border rounded-lg hover:bg-[#f7f7f7] transition-colors">No</button>
+                      <button onClick={handleConfirmDelete} disabled={deleting}
+                        className="flex-1 px-2 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-60 rounded-lg transition-colors">
                         {deleting ? '...' : 'Sí, eliminar'}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <button
-                      onClick={handleEdit}
-                      className="w-full text-left px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors flex items-center gap-2"
-                    >
+                    <button onClick={handleEdit}
+                      className="w-full text-left px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                       Editar
                     </button>
-                    <button
-                      onClick={handleDeleteClick}
-                      className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
-                    >
+                    <button onClick={handleDeleteClick}
+                      className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -237,7 +218,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         )}
       </div>
 
-      {/* Contenido */}
       <div className="p-4">
         <h3 className="font-semibold text-[#111] text-base leading-snug mb-1 line-clamp-2">
           {recipe.title}
@@ -247,7 +227,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           <p className="text-sm text-[#737373] line-clamp-2 mb-3">{recipe.description}</p>
         )}
 
-        {/* Meta */}
         <div className="flex items-center gap-3 text-xs text-[#737373] mb-3">
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +237,8 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
 
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
             </svg>
             {recipe.servings} {recipe.servings === 1 ? 'porción' : 'porciones'}
           </span>
@@ -269,20 +249,24 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             </svg>
             {recipe.difficulty}
           </span>
+
+          {/* Vistas */}
+          <span className="flex items-center gap-1">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            {formatViews(recipe.views_count ?? 0)}
+          </span>
         </div>
 
-        {/* Autor */}
         {recipe.author && (
           <div className="flex items-center gap-2 pt-3 border-t border-[#f0f0f0]">
             <div className="w-6 h-6 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">
               {recipe.author.avatar_url ? (
-                <Image
-                  src={recipe.author.avatar_url}
-                  alt={recipe.author.username}
-                  width={24}
-                  height={24}
-                  className="object-cover"
-                />
+                <Image src={recipe.author.avatar_url} alt={recipe.author.username} width={24} height={24} className="object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-[#737373]">
                   {recipe.author.username[0].toUpperCase()}
