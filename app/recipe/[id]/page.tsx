@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import LikeButton from '@/components/recipe/LikeButton'
 import CommentSection from '@/components/recipe/CommentSection'
+import SharePrintButtons from '@/components/recipe/SharePrintButtons'
 import type { Recipe } from '@/types'
 import type { Metadata } from 'next'
 
@@ -130,9 +131,30 @@ export default async function RecipePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(recipeSchema) }}
       />
 
+      {/* Print styles */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          header, footer, nav, .no-print { display: none !important; }
+          body { background: white !important; color: black !important; font-size: 12pt; }
+          .print-only { display: block !important; }
+          .max-w-4xl { max-width: 100% !important; }
+          .grid { display: block !important; }
+          .sticky { position: static !important; }
+          img { max-height: 300px; object-fit: cover; }
+          a { color: black !important; text-decoration: none !important; }
+          .rounded-\\[12px\\] { border-radius: 0 !important; }
+          @page { margin: 1.5cm; }
+        }
+      `}} />
+
       <div className="max-w-4xl mx-auto px-4 py-10">
 
-        <nav className="flex items-center gap-2 text-sm text-muted mb-6">
+        {/* Print header - only visible when printing */}
+        <div className="print-only hidden mb-4">
+          <p className="text-sm text-gray-500">tuchefsoy.com</p>
+        </div>
+
+        <nav className="flex items-center gap-2 text-sm text-muted mb-6 no-print">
           <Link href="/" className="hover:text-[#111] transition-colors">Inicio</Link>
           <span>/</span>
           <span className="text-[#111] truncate">{r.title}</span>
@@ -148,7 +170,7 @@ export default async function RecipePage({
 
           <div>
             <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 no-print">
                 <span className="px-2.5 py-1 text-xs font-medium bg-[#f7f7f7] rounded-full text-muted">
                   {r.category}
                 </span>
@@ -166,7 +188,7 @@ export default async function RecipePage({
 
             {r.author && (
               <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
-                <div className="w-10 h-10 rounded-full bg-border overflow-hidden shrink-0">
+                <div className="w-10 h-10 rounded-full bg-border overflow-hidden shrink-0 no-print">
                   {r.author.avatar_url ? (
                     <Image src={r.author.avatar_url} alt={r.author.username} width={40} height={40} className="object-cover" />
                   ) : (
@@ -210,11 +232,23 @@ export default async function RecipePage({
               </ol>
             </section>
 
-            <div className="flex items-center gap-3 mb-12 pb-10 border-b border-border">
+            {/* Share & Print buttons */}
+            <div className="mb-10 pb-10 border-b border-border no-print">
+              <h3 className="text-sm font-semibold mb-3 text-muted uppercase tracking-wide">Compartir</h3>
+              <SharePrintButtons
+                title={r.title}
+                description={r.description ?? ''}
+                recipeId={id}
+              />
+            </div>
+
+            <div className="flex items-center gap-3 mb-12 pb-10 border-b border-border no-print">
               <LikeButton recipeId={id} initialLikes={r.likes_count} initialLiked={initialLiked} />
             </div>
 
-            <CommentSection recipeId={id} />
+            <div className="no-print">
+              <CommentSection recipeId={id} />
+            </div>
           </div>
 
           <div>
