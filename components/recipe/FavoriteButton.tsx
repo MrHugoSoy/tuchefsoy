@@ -77,7 +77,7 @@ export default function FavoriteButton({ recipeId, size = 'sm' }: FavoriteButton
       aria-label={saved ? 'Quitar de favoritos' : 'Guardar receta'}
       className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
         saved
-          ? 'bg-brand/10 text-brand'
+          ? 'bg-[#fff5ee] text-brand'
           : 'bg-white/90 text-[#555] hover:bg-white'
       }`}
     >
