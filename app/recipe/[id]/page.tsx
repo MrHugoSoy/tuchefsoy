@@ -148,11 +148,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
           <p className="text-sm text-gray-500">tuchefsoy.com</p>
         </div>
 
-        <nav className="flex items-center gap-2 text-sm text-muted mb-6 no-print">
-          <Link href="/" className="hover:text-[#111] transition-colors">Inicio</Link>
-          <span>/</span>
-          <span className="text-[#111] truncate">{r.title}</span>
-        </nav>
+
 
         {/* Video embed or image */}
         {youtubeId ? (
