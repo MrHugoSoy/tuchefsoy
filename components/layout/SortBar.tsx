@@ -3,9 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const SORT_OPTIONS = [
-  { value: 'recientes', label: 'Recientes' },
-  { value: 'likes', label: 'Más likes' },
   { value: 'vistas', label: 'Más vistas' },
+  { value: 'likes', label: 'Más likes' },
+  { value: 'recientes', label: 'Recientes' },
 ]
 
 interface SortBarProps {
