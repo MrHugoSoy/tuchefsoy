@@ -134,7 +134,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       href={`/recipe/${recipe.id}`}
       className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow relative"
     >
-      <div className="relative aspect-[4/3] bg-[#f0f0f0] overflow-hidden">
+      <div className={`relative ${isVideo ? 'aspect-video' : 'aspect-[4/3]'} bg-[#f0f0f0] overflow-hidden`}>
         {!imgLoaded && recipe.image_url && (
           <div className="absolute inset-0 bg-gradient-to-r from-[#f0f0f0] via-[#e8e8e8] to-[#f0f0f0] animate-pulse" />
         )}
