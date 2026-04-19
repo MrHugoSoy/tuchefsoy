@@ -27,8 +27,9 @@ export interface Recipe {
   title: string
   description: string | null
   image_url: string | null
-  prep_time: number   // minutes
-  cook_time: number   // minutes
+  youtube_url: string | null
+  prep_time: number
+  cook_time: number
   servings: number
   difficulty: Difficulty
   category: Category

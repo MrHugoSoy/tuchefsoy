@@ -40,6 +40,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = user?.id === recipe.author_id
+  const isVideo = !!recipe.youtube_url
   const totalTime = recipe.prep_time + recipe.cook_time
 
   useEffect(() => {
@@ -63,9 +64,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       .eq('recipe_id', recipe.id)
       .eq('user_id', user.id)
       .single()
-      .then(({ data }) => {
-        if (data) setLiked(true)
-      })
+      .then(({ data }) => { if (data) setLiked(true) })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, recipe.id])
 
@@ -136,7 +135,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow relative"
     >
       <div className="relative aspect-[4/3] bg-[#f0f0f0] overflow-hidden">
-        {/* Skeleton shimmer mientras carga */}
         {!imgLoaded && recipe.image_url && (
           <div className="absolute inset-0 bg-gradient-to-r from-[#f0f0f0] via-[#e8e8e8] to-[#f0f0f0] animate-pulse" />
         )}
@@ -160,9 +158,31 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           </div>
         )}
 
-        <span className="absolute top-3 left-3 px-2.5 py-1 text-xs font-medium bg-white/90 rounded-full text-[#555]">
-          {recipe.category}
-        </span>
+        {/* Play button overlay for video recipes */}
+        {isVideo && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 bg-black/60 rounded-full flex items-center justify-center group-hover:bg-black/80 transition-colors">
+              <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex items-center gap-1">
+          <span className="px-2.5 py-1 text-xs font-medium bg-white/90 rounded-full text-[#555]">
+            {recipe.category}
+          </span>
+          {isVideo && (
+            <span className="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-[#ff0000]/90 text-white rounded-full">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              Video
+            </span>
+          )}
+        </div>
 
         {/* Like + Favorito */}
         <div className="absolute top-3 right-3 flex items-center gap-1">
@@ -185,10 +205,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
 
         {isOwner && (
           <div className="absolute bottom-3 right-3" ref={menuRef}>
-            <button
-              onClick={handleMenuToggle}
-              className="flex items-center justify-center w-8 h-8 bg-white/90 hover:bg-white rounded-full transition-colors"
-            >
+            <button onClick={handleMenuToggle} className="flex items-center justify-center w-8 h-8 bg-white/90 hover:bg-white rounded-full transition-colors">
               <svg className="w-4 h-4 text-[#555]" fill="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="5" r="2" />
                 <circle cx="12" cy="12" r="2" />
@@ -202,25 +219,21 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                   <div className="p-3">
                     <p className="text-xs text-[#555] mb-3">¿Eliminar esta receta? No se puede deshacer.</p>
                     <div className="flex gap-2">
-                      <button onClick={handleCancelDelete}
-                        className="flex-1 px-2 py-1.5 text-xs font-medium text-[#555] border border-border rounded-lg hover:bg-[#f7f7f7] transition-colors">No</button>
-                      <button onClick={handleConfirmDelete} disabled={deleting}
-                        className="flex-1 px-2 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-60 rounded-lg transition-colors">
+                      <button onClick={handleCancelDelete} className="flex-1 px-2 py-1.5 text-xs font-medium text-[#555] border border-border rounded-lg hover:bg-[#f7f7f7] transition-colors">No</button>
+                      <button onClick={handleConfirmDelete} disabled={deleting} className="flex-1 px-2 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-60 rounded-lg transition-colors">
                         {deleting ? '...' : 'Sí, eliminar'}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <button onClick={handleEdit}
-                      className="w-full text-left px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors flex items-center gap-2">
+                    <button onClick={handleEdit} className="w-full text-left px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                       Editar
                     </button>
-                    <button onClick={handleDeleteClick}
-                      className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
+                    <button onClick={handleDeleteClick} className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -250,7 +263,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             </svg>
             {totalTime} min
           </span>
-
           <span className="flex items-center gap-1 font-medium" style={{ color: DIFFICULTY_COLOR[recipe.difficulty] }}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -279,7 +291,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                 @{recipe.author.username}
               </Link>
             </div>
-
             <span className="flex items-center gap-1 text-xs text-[#a0a0a0] shrink-0 ml-2">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
