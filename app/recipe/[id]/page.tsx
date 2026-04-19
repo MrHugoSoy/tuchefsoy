@@ -206,6 +206,7 @@ export default async function RecipePage({
               </div>
             )}
 
+            {!youtubeId && (
             <section className="mb-10">
               <h2 className="text-xl font-semibold mb-4">Ingredientes</h2>
               <ul className="flex flex-col gap-2">
@@ -217,7 +218,9 @@ export default async function RecipePage({
                 ))}
               </ul>
             </section>
+            )}
 
+            {!youtubeId && (
             <section className="mb-10">
               <h2 className="text-xl font-semibold mb-4">Preparación</h2>
               <ol className="flex flex-col gap-6">
@@ -229,6 +232,7 @@ export default async function RecipePage({
                 ))}
               </ol>
             </section>
+            )}
 
             <div className="mb-10 pb-10 border-b border-border no-print">
               <h3 className="text-sm font-semibold mb-3 text-muted uppercase tracking-wide">Compartir</h3>
