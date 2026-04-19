@@ -56,7 +56,7 @@ export default async function ProfilePage({
       .eq('user_id', p.id)
       .order('created_at', { ascending: false })
 
-    favorites = (favData?.map((f) => f.recipe) as Recipe[] | null) ?? []
+    favorites = ((favData?.map((f) => f.recipe) ?? []) as unknown as Recipe[])
   }
 
   const totalLikes = recipes.reduce((sum, r) => sum + r.likes_count, 0)
