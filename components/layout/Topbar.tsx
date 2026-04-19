@@ -16,8 +16,10 @@ export default function Topbar() {
 
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [username, setUsername] = useState('')
   const menuRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setSearch(searchParams.get('q') ?? '')
@@ -46,9 +48,16 @@ export default function Topbar() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => searchRef.current?.focus(), 50)
+    }
+  }, [searchOpen])
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = search.trim()
+    setSearchOpen(false)
     if (trimmed) {
       router.push(`/?q=${encodeURIComponent(trimmed)}`)
     } else {
@@ -59,6 +68,7 @@ export default function Topbar() {
   function handleClear() {
     setSearch('')
     router.push('/')
+    setSearchOpen(false)
   }
 
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
@@ -67,20 +77,21 @@ export default function Topbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border">
-      <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-4">
+      <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center gap-3">
 
-        <Link href="/">
+        <Link href="/" className="shrink-0">
           <Image
             src="/logo.svg"
             alt="TuChefSoy"
-            width={120}
-            height={58}
+            width={100}
+            height={48}
+            className="w-[80px] sm:w-[100px]"
             priority
           />
         </Link>
 
-        {/* Buscador */}
-        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+        {/* Buscador desktop */}
+        <form onSubmit={handleSearch} className="hidden sm:block flex-1 max-w-md">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -93,11 +104,7 @@ export default function Topbar() {
               className="w-full pl-9 pr-9 py-2 text-sm bg-[#f7f7f7] border border-border rounded-full outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0]"
             />
             {search && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted hover:text-[#111] transition-colors"
-              >
+              <button type="button" onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted hover:text-[#111] transition-colors">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -106,7 +113,7 @@ export default function Topbar() {
           </div>
         </form>
 
-        {/* Nav */}
+        {/* Nav desktop */}
         <nav className="hidden md:flex items-center gap-1 text-sm">
           <Link href="/" className="px-3 py-1.5 rounded-lg text-[#555] hover:text-[#111] hover:bg-[#f7f7f7] transition-colors">
             Explorar
@@ -119,10 +126,22 @@ export default function Topbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+
+          {/* Ícono de búsqueda en móvil */}
+          <button
+            onClick={() => setSearchOpen((v) => !v)}
+            className="sm:hidden w-8 h-8 flex items-center justify-center rounded-full border border-border hover:bg-[#f7f7f7] transition-colors"
+            aria-label="Buscar"
+          >
+            <svg className="w-4 h-4 text-[#555]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+          </button>
+
           {user ? (
             <Link
               href="/create"
-              className="shrink-0 flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
+              className="shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -132,9 +151,10 @@ export default function Topbar() {
           ) : (
             <button
               onClick={() => openModal('login')}
-              className="shrink-0 px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
+              className="shrink-0 px-3 sm:px-4 py-2 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-full transition-colors"
             >
-              Iniciar sesión
+              <span className="hidden sm:inline">Iniciar sesión</span>
+              <span className="sm:hidden">Entrar</span>
             </button>
           )}
 
@@ -175,6 +195,40 @@ export default function Topbar() {
           )}
         </div>
       </div>
+
+      {/* Buscador expandible en móvil */}
+      {searchOpen && (
+        <div className="sm:hidden px-4 pb-3 bg-white border-t border-border">
+          <form onSubmit={handleSearch}>
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder="Buscar recetas..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-9 py-2.5 text-sm bg-[#f7f7f7] border border-border rounded-full outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0]"
+              />
+              {search ? (
+                <button type="button" onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted hover:text-[#111]">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              ) : (
+                <button type="button" onClick={() => setSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted hover:text-[#111]">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
     </header>
   )
 }
