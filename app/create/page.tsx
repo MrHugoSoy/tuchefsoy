@@ -293,7 +293,8 @@ export default function CreatePage() {
           </div>
         </section>
 
-        {/* Ingredientes */}
+        {/* Ingredientes — solo para recetas normales */}
+        {recipeType === 'normal' && (
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="form-label text-base font-semibold">Ingredientes</h2>
@@ -322,8 +323,10 @@ export default function CreatePage() {
             ))}
           </div>
         </section>
+        )}
 
-        {/* Pasos */}
+        {/* Pasos — solo para recetas normales */}
+        {recipeType === 'normal' && (
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="form-label text-base font-semibold">Pasos</h2>
@@ -345,6 +348,7 @@ export default function CreatePage() {
             ))}
           </div>
         </section>
+        )}
 
         {/* Tags */}
         <section>
