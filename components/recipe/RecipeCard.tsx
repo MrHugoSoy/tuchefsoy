@@ -271,9 +271,13 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                   </div>
                 )}
               </div>
-              <span className="text-xs text-[#737373] truncate">
+              <Link
+                href={`/perfil/${recipe.author.username}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs text-[#737373] truncate hover:text-brand transition-colors"
+              >
                 @{recipe.author.username}
-              </span>
+              </Link>
             </div>
 
             <span className="flex items-center gap-1 text-xs text-[#a0a0a0] shrink-0 ml-2">
