@@ -115,7 +115,7 @@ export default function CreatePage() {
 
       // For video recipes, use YouTube thumbnail as image if no image uploaded
       if (recipeType === 'video' && !imageUrl && youtubeId) {
-        imageUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
+        imageUrl = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
       }
 
       const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean)
