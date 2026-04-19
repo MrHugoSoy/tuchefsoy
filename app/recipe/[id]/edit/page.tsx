@@ -13,6 +13,11 @@ const CATEGORIES: Exclude<Category, 'Todo'>[] = [
 ]
 const DIFFICULTIES: Difficulty[] = ['Fácil', 'Media', 'Difícil']
 
+function getYoutubeId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : null
+}
+
 export default function EditRecipePage() {
   const router = useRouter()
   const params = useParams()
@@ -22,6 +27,7 @@ export default function EditRecipePage() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [loading, setLoading] = useState(true)
+  const [isVideo, setIsVideo] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<Exclude<Category, 'Todo'>>('Comidas')
@@ -35,8 +41,11 @@ export default function EditRecipePage() {
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const youtubeId = getYoutubeId(youtubeUrl)
 
   useEffect(() => {
     async function loadRecipe() {
@@ -46,14 +55,10 @@ export default function EditRecipePage() {
         .eq('id', recipeId)
         .single()
 
-      if (error || !data) {
-        router.push('/')
-        return
-      }
+      if (error || !data) { router.push('/'); return }
 
       const r = data as Recipe
 
-      // Check ownership
       if (user && r.author_id !== user.id) {
         router.push(`/recipe/${recipeId}`)
         return
@@ -71,6 +76,8 @@ export default function EditRecipePage() {
       setTags(r.tags?.join(', ') ?? '')
       setCurrentImageUrl(r.image_url)
       setImagePreview(r.image_url)
+      setIsVideo(!!r.youtube_url)
+      setYoutubeUrl(r.youtube_url ?? '')
       setLoading(false)
     }
 
@@ -105,22 +112,14 @@ export default function EditRecipePage() {
     setImagePreview(URL.createObjectURL(file))
   }
 
-  function addIngredient() {
-    setIngredients((prev) => [...prev, { name: '', amount: '', unit: '' }])
-  }
-  function removeIngredient(i: number) {
-    setIngredients((prev) => prev.filter((_, idx) => idx !== i))
-  }
+  function addIngredient() { setIngredients((prev) => [...prev, { name: '', amount: '', unit: '' }]) }
+  function removeIngredient(i: number) { setIngredients((prev) => prev.filter((_, idx) => idx !== i)) }
   function updateIngredient(i: number, field: keyof Ingredient, value: string) {
     setIngredients((prev) => prev.map((ing, idx) => idx === i ? { ...ing, [field]: value } : ing))
   }
 
-  function addStep() {
-    setSteps((prev) => [...prev, ''])
-  }
-  function removeStep(i: number) {
-    setSteps((prev) => prev.filter((_, idx) => idx !== i))
-  }
+  function addStep() { setSteps((prev) => [...prev, '']) }
+  function removeStep(i: number) { setSteps((prev) => prev.filter((_, idx) => idx !== i)) }
   function updateStep(i: number, value: string) {
     setSteps((prev) => prev.map((s, idx) => idx === i ? value : s))
   }
@@ -129,6 +128,12 @@ export default function EditRecipePage() {
     e.preventDefault()
     if (!user) return
     setError(null)
+
+    if (isVideo && !youtubeId) {
+      setError('Por favor ingresa una URL válida de YouTube')
+      return
+    }
+
     setSubmitting(true)
 
     try {
@@ -137,21 +142,19 @@ export default function EditRecipePage() {
       if (imageFile) {
         const ext = imageFile.name.split('.').pop()
         const path = `${user.id}/${Date.now()}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from('recipes')
-          .upload(path, imageFile, { upsert: true })
-
+        const { error: uploadError } = await supabase.storage.from('recipes').upload(path, imageFile, { upsert: true })
         if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('recipes')
-          .getPublicUrl(path)
+        const { data: { publicUrl } } = supabase.storage.from('recipes').getPublicUrl(path)
         imageUrl = publicUrl
       }
 
+      if (isVideo && !imageUrl && youtubeId) {
+        imageUrl = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
+      }
+
       const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean)
-      const cleanIngredients = ingredients.filter((i) => i.name.trim())
-      const cleanSteps = steps.filter((s) => s.trim())
+      const cleanIngredients = isVideo ? [] : ingredients.filter((i) => i.name.trim())
+      const cleanSteps = isVideo ? [] : steps.filter((s) => s.trim())
 
       const { error: updateError } = await supabase
         .from('recipes')
@@ -159,6 +162,7 @@ export default function EditRecipePage() {
           title,
           description: description || null,
           image_url: imageUrl,
+          youtube_url: isVideo ? youtubeUrl : null,
           prep_time: parseInt(prepTime) || 0,
           cook_time: parseInt(cookTime) || 0,
           servings: parseInt(servings) || 1,
@@ -185,26 +189,52 @@ export default function EditRecipePage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
 
-        {/* Imagen */}
-        <section>
-          <label className="form-label">Imagen principal</label>
-          <div
-            onClick={() => fileRef.current?.click()}
-            className="mt-2 relative aspect-video rounded-[12px] border border-border overflow-hidden cursor-pointer bg-[#f7f7f7] hover:bg-border transition-colors flex items-center justify-center"
-          >
-            {imagePreview ? (
-              <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-            ) : (
-              <div className="flex flex-col items-center gap-2 text-muted">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm">Haz clic para cambiar la imagen</span>
+        {/* Imagen o Video */}
+        {isVideo ? (
+          <section>
+            <label className="form-label">URL de YouTube</label>
+            <input
+              type="url"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="form-input mt-1"
+            />
+            {youtubeId && (
+              <div className="mt-3 relative aspect-video rounded-[12px] overflow-hidden bg-black">
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeId}`}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  title="Preview del video"
+                />
               </div>
             )}
-          </div>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-        </section>
+            {youtubeUrl && !youtubeId && (
+              <p className="mt-2 text-xs text-red-500">URL de YouTube no válida</p>
+            )}
+          </section>
+        ) : (
+          <section>
+            <label className="form-label">Imagen principal</label>
+            <div
+              onClick={() => fileRef.current?.click()}
+              className="mt-2 relative aspect-video rounded-[12px] border border-border overflow-hidden cursor-pointer bg-[#f7f7f7] hover:bg-border transition-colors flex items-center justify-center"
+            >
+              {imagePreview ? (
+                <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-muted">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-sm">Haz clic para cambiar la imagen</span>
+                </div>
+              )}
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+          </section>
+        )}
 
         {/* Básicos */}
         <section className="flex flex-col gap-4">
@@ -249,58 +279,62 @@ export default function EditRecipePage() {
           </div>
         </section>
 
-        {/* Ingredientes */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="form-label text-base font-semibold">Ingredientes</h2>
-            <button type="button" onClick={addIngredient} className="text-sm text-brand hover:underline font-medium">+ Añadir</button>
-          </div>
-          <div className="flex gap-2 mb-1 px-0.5">
-            <span className="flex-1 text-xs text-muted">Nombre</span>
-            <span className="w-24 shrink-0 text-xs text-muted">Cantidad</span>
-            <span className="w-20 shrink-0 text-xs text-muted">Unidad</span>
-            {ingredients.length > 1 && <span className="w-7 shrink-0" />}
-          </div>
-          <div className="flex flex-col gap-2">
-            {ingredients.map((ing, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <input type="text" placeholder="ej: Tomate" value={ing.name} onChange={(e) => updateIngredient(i, 'name', e.target.value)} className="ing-input flex-1" />
-                <input type="text" placeholder="2" value={ing.amount} onChange={(e) => updateIngredient(i, 'amount', e.target.value)} className="ing-input w-24 shrink-0" />
-                <input type="text" placeholder="kg, tazas…" value={ing.unit} onChange={(e) => updateIngredient(i, 'unit', e.target.value)} className="ing-input w-20 shrink-0" />
-                {ingredients.length > 1 && (
-                  <button type="button" onClick={() => removeIngredient(i)} className="shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Ingredientes — solo recetas normales */}
+        {!isVideo && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="form-label text-base font-semibold">Ingredientes</h2>
+              <button type="button" onClick={addIngredient} className="text-sm text-brand hover:underline font-medium">+ Añadir</button>
+            </div>
+            <div className="flex gap-2 mb-1 px-0.5">
+              <span className="flex-1 text-xs text-muted">Nombre</span>
+              <span className="w-24 shrink-0 text-xs text-muted">Cantidad</span>
+              <span className="w-20 shrink-0 text-xs text-muted">Unidad</span>
+              {ingredients.length > 1 && <span className="w-7 shrink-0" />}
+            </div>
+            <div className="flex flex-col gap-2">
+              {ingredients.map((ing, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input type="text" placeholder="ej: Tomate" value={ing.name} onChange={(e) => updateIngredient(i, 'name', e.target.value)} className="ing-input flex-1" />
+                  <input type="text" placeholder="2" value={ing.amount} onChange={(e) => updateIngredient(i, 'amount', e.target.value)} className="ing-input w-24 shrink-0" />
+                  <input type="text" placeholder="kg, tazas…" value={ing.unit} onChange={(e) => updateIngredient(i, 'unit', e.target.value)} className="ing-input w-20 shrink-0" />
+                  {ingredients.length > 1 && (
+                    <button type="button" onClick={() => removeIngredient(i)} className="shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* Pasos */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="form-label text-base font-semibold">Pasos</h2>
-            <button type="button" onClick={addStep} className="text-sm text-brand hover:underline font-medium">+ Añadir paso</button>
-          </div>
-          <div className="flex flex-col gap-3">
-            {steps.map((step, i) => (
-              <div key={i} className="flex gap-3 items-start">
-                <span className="mt-2.5 shrink-0 w-6 h-6 rounded-full bg-[#fff5ee] text-brand text-xs font-semibold flex items-center justify-center">{i + 1}</span>
-                <textarea value={step} onChange={(e) => updateStep(i, e.target.value)} placeholder={`Paso ${i + 1}...`} rows={2} className="form-input flex-1 resize-none" />
-                {steps.length > 1 && (
-                  <button type="button" onClick={() => removeStep(i)} className="mt-2.5 shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Pasos — solo recetas normales */}
+        {!isVideo && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="form-label text-base font-semibold">Pasos</h2>
+              <button type="button" onClick={addStep} className="text-sm text-brand hover:underline font-medium">+ Añadir paso</button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {steps.map((step, i) => (
+                <div key={i} className="flex gap-3 items-start">
+                  <span className="mt-2.5 shrink-0 w-6 h-6 rounded-full bg-[#fff5ee] text-brand text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                  <textarea value={step} onChange={(e) => updateStep(i, e.target.value)} placeholder={`Paso ${i + 1}...`} rows={2} className="form-input flex-1 resize-none" />
+                  {steps.length > 1 && (
+                    <button type="button" onClick={() => removeStep(i)} className="mt-2.5 shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Tags */}
         <section>
@@ -324,22 +358,10 @@ export default function EditRecipePage() {
 
       <style>{`
         .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #111; }
-        .form-input {
-          display: block; width: 100%; padding: 0.625rem 0.875rem;
-          font-size: 0.875rem; background: #f7f7f7;
-          border: 1px solid #f0f0f0; border-radius: 0.75rem;
-          outline: none; transition: border-color 0.15s, background-color 0.15s;
-          font-family: inherit;
-        }
+        .form-input { display: block; width: 100%; padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #f7f7f7; border: 1px solid #f0f0f0; border-radius: 0.75rem; outline: none; transition: border-color 0.15s, background-color 0.15s; font-family: inherit; }
         .form-input:focus { border-color: #e85d04; background: #fff; }
         .form-input::placeholder { color: #a0a0a0; }
-        .ing-input {
-          padding: 0.625rem 0.875rem;
-          font-size: 0.875rem; background: #f7f7f7;
-          border: 1px solid #f0f0f0; border-radius: 0.75rem;
-          outline: none; transition: border-color 0.15s, background-color 0.15s;
-          font-family: inherit; min-width: 0;
-        }
+        .ing-input { padding: 0.625rem 0.875rem; font-size: 0.875rem; background: #f7f7f7; border: 1px solid #f0f0f0; border-radius: 0.75rem; outline: none; transition: border-color 0.15s, background-color 0.15s; font-family: inherit; min-width: 0; }
         .ing-input:focus { border-color: #e85d04; background: #fff; }
         .ing-input::placeholder { color: #a0a0a0; }
       `}</style>
