@@ -65,12 +65,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <SortBar activeSort={activeSort} />
           </div>
 
-          {/* Grid estilo Pinterest */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
+          {/* Grid izquierda a derecha */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {feed.map((recipe) => (
-              <div key={recipe.id} className="break-inside-avoid">
-                <RecipeCard recipe={recipe} />
-              </div>
+              <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
           </div>
 
