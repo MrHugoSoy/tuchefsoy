@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import FavoriteButton from '@/components/recipe/FavoriteButton'
 import type { Recipe } from '@/types'
 
 interface RecipeCardProps {
@@ -155,20 +156,24 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           {recipe.category}
         </span>
 
-        <button
-          onClick={handleLike}
-          aria-label={liked ? 'Quitar like' : 'Dar like'}
-          className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-white/90 rounded-full transition-colors hover:bg-white"
-        >
-          <svg
-            className={`w-3.5 h-3.5 transition-colors ${liked ? 'fill-[#e85d04] stroke-[#e85d04]' : 'fill-none stroke-[#555]'}`}
-            viewBox="0 0 24 24" strokeWidth={2}
+        {/* Like + Favorito */}
+        <div className="absolute top-3 right-3 flex items-center gap-1">
+          <FavoriteButton recipeId={recipe.id} />
+          <button
+            onClick={handleLike}
+            aria-label={liked ? 'Quitar like' : 'Dar like'}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-white/90 rounded-full transition-colors hover:bg-white"
           >
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-          <span className={liked ? 'text-[#e85d04]' : 'text-[#555]'}>{likes}</span>
-        </button>
+            <svg
+              className={`w-3.5 h-3.5 transition-colors ${liked ? 'fill-[#e85d04] stroke-[#e85d04]' : 'fill-none stroke-[#555]'}`}
+              viewBox="0 0 24 24" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span className={liked ? 'text-[#e85d04]' : 'text-[#555]'}>{likes}</span>
+          </button>
+        </div>
 
         {isOwner && (
           <div className="absolute bottom-3 right-3" ref={menuRef}>
@@ -246,7 +251,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           </span>
         </div>
 
-        {/* Autor + vistas — solo username */}
         {recipe.author && (
           <div className="flex items-center justify-between pt-3 border-t border-[#f0f0f0]">
             <div className="flex items-center gap-2 min-w-0">
@@ -266,10 +270,8 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
 
             <span className="flex items-center gap-1 text-xs text-[#a0a0a0] shrink-0 ml-2">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
               {formatViews(recipe.views_count ?? 0)}
             </span>
