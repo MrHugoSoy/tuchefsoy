@@ -52,17 +52,25 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-8">
+    <div className="max-w-[1400px] mx-auto px-4 py-6 sm:py-8">
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8">
 
         {/* Feed principal */}
         <div>
-          <div className="flex items-end justify-between mb-7">
-            <div>
-              <h1 className="text-2xl font-semibold mb-1">{heading}</h1>
-              <p className="text-sm text-muted">{subheading}</p>
+          {/* Header: en móvil apilado, en desktop lado a lado */}
+          <div className="mb-5 sm:mb-7">
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <h1 className="text-xl sm:text-2xl font-semibold leading-tight">{heading}</h1>
+              {/* Sort bar — visible en desktop inline, en móvil abajo */}
+              <div className="hidden sm:block shrink-0">
+                <SortBar activeSort={activeSort} />
+              </div>
             </div>
-            <SortBar activeSort={activeSort} />
+            <p className="text-sm text-muted mb-3">{subheading}</p>
+            {/* Sort bar en móvil */}
+            <div className="sm:hidden">
+              <SortBar activeSort={activeSort} />
+            </div>
           </div>
 
           {/* Grid estilo Pinterest */}
@@ -101,8 +109,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           )}
         </div>
 
-        {/* Sidebar IA Chef */}
-        <div>
+        {/* Sidebar IA Chef — solo desktop */}
+        <div className="hidden xl:block">
           <div className="sticky top-24">
             <ChefAssistant />
           </div>
