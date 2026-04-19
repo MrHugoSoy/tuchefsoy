@@ -1,5 +1,6 @@
 import RecipeCard from '@/components/recipe/RecipeCard'
 import ChefAssistant from '@/components/ai/ChefAssistant'
+import SortBar from '@/components/layout/SortBar'
 import { createClient } from '@/lib/supabase-server'
 import type { Recipe, Category } from '@/types'
 
@@ -56,11 +57,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* Feed principal */}
         <div>
-          <div className="mb-7">
-            <h1 className="text-2xl font-semibold mb-1">{heading}</h1>
-            <p className="text-sm text-muted">{subheading}</p>
+          <div className="flex items-end justify-between mb-7">
+            <div>
+              <h1 className="text-2xl font-semibold mb-1">{heading}</h1>
+              <p className="text-sm text-muted">{subheading}</p>
+            </div>
+            <SortBar activeSort={activeSort} />
           </div>
 
+          {/* Grid estilo Pinterest */}
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
             {feed.map((recipe) => (
               <div key={recipe.id} className="break-inside-avoid">
