@@ -216,7 +216,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           <p className="text-sm text-[#737373] line-clamp-2 mb-3">{recipe.description}</p>
         )}
 
-        {/* Meta */}
         <div className="flex items-center gap-3 text-xs text-[#737373] mb-3">
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +232,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           </span>
         </div>
 
-        {/* Autor + vistas */}
+        {/* Autor + vistas — solo username */}
         {recipe.author && (
           <div className="flex items-center justify-between pt-3 border-t border-[#f0f0f0]">
             <div className="flex items-center gap-2 min-w-0">
@@ -247,11 +246,10 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                 )}
               </div>
               <span className="text-xs text-[#737373] truncate">
-                {recipe.author.full_name ?? recipe.author.username}
+                @{recipe.author.username}
               </span>
             </div>
 
-            {/* Vistas */}
             <span className="flex items-center gap-1 text-xs text-[#a0a0a0] shrink-0 ml-2">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

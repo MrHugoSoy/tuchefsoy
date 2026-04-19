@@ -5,19 +5,36 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { createClient } from '@/lib/supabase'
 import NotificationsBell from '@/components/notifications/NotificationsBell'
 
 export default function Topbar() {
   const { user, loading, openModal, signOut } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const supabase = createClient()
+
   const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [username, setUsername] = useState('')
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setSearch(searchParams.get('q') ?? '')
   }, [searchParams])
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.username) setUsername(data.username)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -45,11 +62,7 @@ export default function Topbar() {
   }
 
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
-  const displayName =
-    (user?.user_metadata?.full_name as string) ??
-    (user?.user_metadata?.name as string) ??
-    user?.email?.split('@')[0] ??
-    ''
+  const displayName = username || user?.email?.split('@')[0] || ''
   const initials = displayName.slice(0, 2).toUpperCase()
 
   return (
@@ -125,7 +138,6 @@ export default function Topbar() {
             </button>
           )}
 
-          {/* Campanita de notificaciones */}
           {!loading && user && <NotificationsBell />}
 
           {!loading && user && (
@@ -146,7 +158,7 @@ export default function Topbar() {
               {menuOpen && (
                 <div className="absolute right-0 top-10 w-44 bg-white border border-border rounded-xl shadow-lg py-1 z-50">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-sm font-medium text-[#111] truncate">{displayName}</p>
+                    <p className="text-sm font-medium text-[#111] truncate">@{displayName}</p>
                   </div>
                   <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
                     Mi perfil
