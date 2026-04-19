@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import RecipeCard from '@/components/recipe/RecipeCard'
 import EditProfileButton from '@/components/profile/EditProfileButton'
+import FollowButton from '@/components/profile/FollowButton'
 import type { Recipe, Profile } from '@/types'
 
 function memberSince(date: string) {
@@ -55,13 +56,34 @@ export default async function ProfilePage({
       .select('recipe:recipes(*, author:profiles(*))')
       .eq('user_id', p.id)
       .order('created_at', { ascending: false })
-
     favorites = ((favData?.map((f) => f.recipe) ?? []) as unknown as Recipe[])
+  }
+
+  // Followers & following counts
+  const { count: followersCount } = await supabase
+    .from('user_follows')
+    .select('id', { count: 'exact', head: true })
+    .eq('following_id', p.id)
+
+  const { count: followingCount } = await supabase
+    .from('user_follows')
+    .select('id', { count: 'exact', head: true })
+    .eq('follower_id', p.id)
+
+  // Check if current user follows this profile
+  let initialFollowing = false
+  if (user && !isOwn) {
+    const { data: followRow } = await supabase
+      .from('user_follows')
+      .select('id')
+      .eq('follower_id', user.id)
+      .eq('following_id', p.id)
+      .single()
+    initialFollowing = !!followRow
   }
 
   const totalLikes = recipes.reduce((sum, r) => sum + r.likes_count, 0)
   const totalRecipes = recipes.length
-
   const displayList = activeTab === 'favoritos' ? favorites : recipes
 
   return (
@@ -83,7 +105,10 @@ export default async function ProfilePage({
         <div className="flex-1 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
             <h1 className="text-2xl font-semibold text-[#111]">{p.full_name ?? p.username}</h1>
-            {isOwn && <EditProfileButton profile={p} />}
+            {isOwn
+              ? <EditProfileButton profile={p} />
+              : <FollowButton targetUserId={p.id} initialFollowing={initialFollowing} />
+            }
           </div>
 
           <p className="text-sm text-muted mb-4">@{p.username}</p>
@@ -92,10 +117,21 @@ export default async function ProfilePage({
             <p className="text-sm text-[#555] leading-relaxed mb-4 max-w-lg">{p.bio}</p>
           )}
 
-          <div className="flex items-center justify-center sm:justify-start gap-6">
+          {/* Stats */}
+          <div className="flex items-center justify-center sm:justify-start gap-6 flex-wrap">
             <div className="text-center">
               <span className="block text-lg font-semibold text-[#111]">{totalRecipes}</span>
               <span className="text-xs text-muted">{totalRecipes === 1 ? 'Receta' : 'Recetas'}</span>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center">
+              <span className="block text-lg font-semibold text-[#111]">{followersCount ?? 0}</span>
+              <span className="text-xs text-muted">Seguidores</span>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center">
+              <span className="block text-lg font-semibold text-[#111]">{followingCount ?? 0}</span>
+              <span className="text-xs text-muted">Siguiendo</span>
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="text-center">
@@ -104,10 +140,7 @@ export default async function ProfilePage({
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="text-center">
-              <span className="block text-lg font-semibold text-[#111]">
-                <svg className="w-4 h-4 inline-block mr-1 -mt-0.5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+              <span className="block text-sm font-semibold text-[#111]">
                 {memberSince(p.created_at)}
               </span>
               <span className="text-xs text-muted">Miembro desde</span>
@@ -143,7 +176,6 @@ export default async function ProfilePage({
           </Link>
         )}
 
-        {/* Nueva receta button */}
         <div className="ml-auto">
           {isOwn && (
             <Link
