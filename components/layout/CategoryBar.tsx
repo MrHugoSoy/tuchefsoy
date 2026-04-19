@@ -52,26 +52,6 @@ export default function CategoryBar() {
       <div className="max-w-[1400px] mx-auto px-4">
         <div className="flex items-center gap-2 py-3">
 
-          {/* Categorías */}
-          <div className="flex gap-1 overflow-x-auto scrollbar-none flex-1">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleClick(cat)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                  active === cat
-                    ? 'bg-[#e85d04] text-white'
-                    : 'bg-[#f7f7f7] text-[#555] hover:bg-[#f0f0f0] hover:text-[#111]'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Separador */}
-          <div className="w-px h-5 bg-[#e0e0e0] shrink-0" />
-
           {/* Sort */}
           <div className="flex items-center gap-1 bg-[#f7f7f7] rounded-full p-1 shrink-0">
             {SORT_OPTIONS.map((opt) => (
@@ -85,6 +65,26 @@ export default function CategoryBar() {
                 }`}
               >
                 {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Separador */}
+          <div className="w-px h-5 bg-[#e0e0e0] shrink-0" />
+
+          {/* Categorías */}
+          <div className="flex gap-1 overflow-x-auto scrollbar-none flex-1">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleClick(cat)}
+                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                  active === cat
+                    ? 'bg-[#e85d04] text-white'
+                    : 'bg-[#f7f7f7] text-[#555] hover:bg-[#f0f0f0] hover:text-[#111]'
+                }`}
+              >
+                {cat}
               </button>
             ))}
           </div>
