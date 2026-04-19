@@ -147,7 +147,6 @@ export default function Topbar() {
                 <div className="absolute right-0 top-10 w-44 bg-white border border-border rounded-xl shadow-lg py-1 z-50">
                   <div className="px-3 py-2 border-b border-border">
                     <p className="text-sm font-medium text-[#111] truncate">{displayName}</p>
-                    <p className="text-xs text-muted truncate">{user.email}</p>
                   </div>
                   <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
                     Mi perfil
