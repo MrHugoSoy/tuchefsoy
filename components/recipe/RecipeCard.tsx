@@ -36,6 +36,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = user?.id === recipe.author_id
@@ -134,14 +135,21 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       href={`/recipe/${recipe.id}`}
       className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow relative"
     >
-      <div className="relative aspect-[4/3] bg-[#f7f7f7] overflow-hidden">
+      <div className="relative aspect-[4/3] bg-[#f0f0f0] overflow-hidden">
+        {/* Skeleton shimmer mientras carga */}
+        {!imgLoaded && recipe.image_url && (
+          <div className="absolute inset-0 bg-gradient-to-r from-[#f0f0f0] via-[#e8e8e8] to-[#f0f0f0] animate-pulse" />
+        )}
+
         {recipe.image_url ? (
           <Image
             src={recipe.image_url}
             alt={recipe.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            className={`object-cover group-hover:scale-105 transition-all duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 380px"
+            onLoad={() => setImgLoaded(true)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[#d0d0d0]">
