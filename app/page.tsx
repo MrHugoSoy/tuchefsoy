@@ -1,23 +1,32 @@
 import RecipeCard from '@/components/recipe/RecipeCard'
 import ChefAssistant from '@/components/ai/ChefAssistant'
+import SortBar from '@/components/layout/SortBar'
 import { createClient } from '@/lib/supabase-server'
 import type { Recipe, Category } from '@/types'
 
 interface HomePageProps {
-  searchParams: Promise<{ category?: string; q?: string }>
+  searchParams: Promise<{ category?: string; q?: string; sort?: string }>
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { category, q } = await searchParams
+  const { category, q, sort } = await searchParams
   const activeCategory = (category as Category) || 'Todo'
   const searchQuery = q?.trim() ?? ''
+  const activeSort = sort || 'recientes'
 
   const supabase = await createClient()
+
+  const sortConfig: Record<string, { column: string; ascending: boolean }> = {
+    recientes: { column: 'created_at', ascending: false },
+    likes: { column: 'likes_count', ascending: false },
+    vistas: { column: 'views_count', ascending: false },
+  }
+  const { column, ascending } = sortConfig[activeSort] ?? sortConfig.recientes
 
   let query = supabase
     .from('recipes')
     .select('*, author:profiles(*)')
-    .order('created_at', { ascending: false })
+    .order(column, { ascending })
     .limit(30)
 
   if (activeCategory !== 'Todo') {
@@ -31,7 +40,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const { data } = await query
   const feed: Recipe[] = (data as Recipe[] | null) ?? []
 
-  // Determine heading
   let heading = 'Descubre recetas'
   let subheading = 'Inspírate con las mejores recetas de nuestra comunidad'
 
@@ -49,12 +57,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* Feed principal */}
         <div>
-          <div className="mb-7">
-            <h1 className="text-2xl font-semibold mb-1">{heading}</h1>
-            <p className="text-sm text-muted">{subheading}</p>
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold mb-1">{heading}</h1>
+              <p className="text-sm text-muted">{subheading}</p>
+            </div>
+            <SortBar activeSort={activeSort} />
           </div>
 
-          {/* Grid 4 columnas */}
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
             {feed.map((recipe) => (
               <div key={recipe.id} className="break-inside-avoid">
