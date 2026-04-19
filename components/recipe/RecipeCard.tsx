@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -35,9 +35,23 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = user?.id === recipe.author_id
   const totalTime = recipe.prep_time + recipe.cook_time
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+        setConfirmDelete(false)
+      }
+    }
+    if (menuOpen) {
+      document.addEventListener('mousedown', onClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [menuOpen])
 
   useEffect(() => {
     if (!user) return
@@ -157,7 +171,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         </button>
 
         {isOwner && (
-          <div className="absolute bottom-3 right-3">
+          <div className="absolute bottom-3 right-3" ref={menuRef}>
             <button
               onClick={handleMenuToggle}
               className="flex items-center justify-center w-8 h-8 bg-white/90 hover:bg-white rounded-full transition-colors"
