@@ -107,7 +107,7 @@ export default async function ProfilePage({
             <h1 className="text-2xl font-semibold text-[#111]">{p.full_name ?? p.username}</h1>
             {isOwn
               ? <EditProfileButton profile={p} />
-              : <FollowButton targetUserId={p.id} initialFollowing={initialFollowing} />
+              : <FollowButton targetUserId={p.id} initialFollowing={initialFollowing} followerUsername={user?.user_metadata?.user_name as string ?? undefined} />
             }
           </div>
 

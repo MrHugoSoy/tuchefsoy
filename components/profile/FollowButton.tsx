@@ -7,9 +7,10 @@ import { useAuth } from '@/context/AuthContext'
 interface FollowButtonProps {
   targetUserId: string
   initialFollowing: boolean
+  followerUsername?: string
 }
 
-export default function FollowButton({ targetUserId, initialFollowing }: FollowButtonProps) {
+export default function FollowButton({ targetUserId, initialFollowing, followerUsername }: FollowButtonProps) {
   const { user, openModal } = useAuth()
   const supabase = createClient()
   const [following, setFollowing] = useState(initialFollowing)
@@ -27,6 +28,19 @@ export default function FollowButton({ targetUserId, initialFollowing }: FollowB
       await supabase.from('user_follows').insert({
         follower_id: user.id,
         following_id: targetUserId,
+      })
+
+      // Notificar al usuario seguido
+      const senderName = followerUsername
+        ?? (user.user_metadata?.full_name as string)
+        ?? user.email?.split('@')[0]
+        ?? 'Alguien'
+
+      await supabase.from('notifications').insert({
+        user_id: targetUserId,
+        type: 'follow',
+        from_user_id: user.id,
+        message: `@${senderName} comenzó a seguirte`,
       })
     } else {
       await supabase.from('user_follows').delete()

@@ -7,8 +7,9 @@ import { useAuth } from '@/context/AuthContext'
 
 interface Notification {
   id: string
-  type: 'like' | 'comment' | 'rating'
-  recipe_id: string
+  type: 'like' | 'comment' | 'rating' | 'follow'
+  recipe_id: string | null
+  from_user_id: string | null
   message: string
   read: boolean
   created_at: string
@@ -26,6 +27,7 @@ const TYPE_ICON: Record<string, string> = {
   like: '❤️',
   comment: '💬',
   rating: '⭐',
+  follow: '👤',
 }
 
 export default function NotificationsBell() {
@@ -34,13 +36,13 @@ export default function NotificationsBell() {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unread, setUnread] = useState(0)
+  const [followUsernames, setFollowUsernames] = useState<Record<string, string>>({})
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!user) return
     loadNotifications()
 
-    // Realtime subscription
     const channel = supabase
       .channel('notifications')
       .on('postgres_changes', {
@@ -80,13 +82,27 @@ export default function NotificationsBell() {
     if (data) {
       setNotifications(data as Notification[])
       setUnread(data.filter((n) => !n.read).length)
+
+      // Load usernames for follow notifications
+      const followNotifs = data.filter((n) => n.type === 'follow' && n.from_user_id)
+      if (followNotifs.length > 0) {
+        const ids = followNotifs.map((n) => n.from_user_id)
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', ids)
+        if (profiles) {
+          const map: Record<string, string> = {}
+          profiles.forEach((p) => { map[p.id] = p.username })
+          setFollowUsernames(map)
+        }
+      }
     }
   }
 
   async function handleOpen() {
     setOpen((v) => !v)
     if (!open && unread > 0) {
-      // Mark all as read
       await supabase
         .from('notifications')
         .update({ read: true })
@@ -102,6 +118,14 @@ export default function NotificationsBell() {
     await supabase.from('notifications').delete().eq('user_id', user.id)
     setNotifications([])
     setUnread(0)
+  }
+
+  function getHref(n: Notification): string {
+    if (n.type === 'follow' && n.from_user_id && followUsernames[n.from_user_id]) {
+      return `/perfil/${followUsernames[n.from_user_id]}`
+    }
+    if (n.recipe_id) return `/recipe/${n.recipe_id}`
+    return '/'
   }
 
   if (!user) return null
@@ -129,10 +153,7 @@ export default function NotificationsBell() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <span className="text-sm font-semibold text-[#111]">Notificaciones</span>
             {notifications.length > 0 && (
-              <button
-                onClick={clearAll}
-                className="text-xs text-muted hover:text-[#111] transition-colors"
-              >
+              <button onClick={clearAll} className="text-xs text-muted hover:text-[#111] transition-colors">
                 Limpiar todo
               </button>
             )}
@@ -147,7 +168,7 @@ export default function NotificationsBell() {
               notifications.map((n) => (
                 <Link
                   key={n.id}
-                  href={`/recipe/${n.recipe_id}`}
+                  href={getHref(n)}
                   onClick={() => setOpen(false)}
                   className={`flex items-start gap-3 px-4 py-3 hover:bg-[#f7f7f7] transition-colors border-b border-[#f7f7f7] last:border-0 ${
                     !n.read ? 'bg-[#fff5ee]' : ''
