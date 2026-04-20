@@ -183,6 +183,11 @@ export default function Topbar() {
                   <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors">
                     Mi perfil
                   </Link>
+                  {user.id === '094c3fa4-d3f9-4548-8403-4c3fe4d4ffb4' && (
+                    <Link href="/admin/crear" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-brand hover:bg-[#fff5ee] transition-colors border-t border-border">
+                      ⚡ Admin
+                    </Link>
+                  )}
                   <button
                     onClick={() => { setMenuOpen(false); signOut() }}
                     className="w-full text-left px-3 py-2 text-sm text-[#555] hover:bg-[#f7f7f7] hover:text-[#111] transition-colors border-t border-border"
