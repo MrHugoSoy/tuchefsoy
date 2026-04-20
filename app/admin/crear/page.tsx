@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -86,7 +85,6 @@ function parseRecipeText(text: string) {
 
 export default function AdminCreatePage() {
   const { user } = useAuth()
-  const router = useRouter()
   const supabase = createClient()
   const fileRef = useRef<HTMLInputElement>(null)
 
