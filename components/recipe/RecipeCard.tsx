@@ -129,9 +129,11 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     setMenuOpen(false)
   }
 
+  const recipeHref = recipe.slug ? `/receta/${recipe.slug}` : `/recipe/${recipe.id}`
+
   return (
     <Link
-      href={`/recipe/${recipe.id}`}
+      href={recipeHref}
       className="group block rounded-[12px] border border-[#f0f0f0] bg-white overflow-hidden hover:shadow-md transition-shadow relative"
     >
       <div className={`relative ${isVideo ? 'aspect-video' : 'aspect-[4/3]'} bg-[#f0f0f0] overflow-hidden`}>
