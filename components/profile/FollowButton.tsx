@@ -50,7 +50,7 @@ export default function FollowButton({ targetUserId, initialFollowing, followerU
     setLoading(false)
   }
 
-  if (user?.id === targetUserId) return null
+  if (!user || user?.id === targetUserId) return null
 
   return (
     <button
