@@ -28,6 +28,7 @@ export interface Recipe {
   description: string | null
   image_url: string | null
   youtube_url: string | null
+  slug: string | null
   prep_time: number
   cook_time: number
   servings: number

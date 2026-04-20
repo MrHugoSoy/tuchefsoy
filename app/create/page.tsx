@@ -122,6 +122,16 @@ export default function CreatePage() {
       const cleanIngredients = ingredients.filter((i) => i.name.trim())
       const cleanSteps = steps.filter((s) => s.trim())
 
+      // Generar slug
+      const slug = title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+
       const { data: recipe, error: insertError } = await supabase
         .from('recipes')
         .insert({
@@ -129,6 +139,7 @@ export default function CreatePage() {
           description: description || null,
           image_url: imageUrl,
           youtube_url: recipeType === 'video' && youtubeId ? youtubeUrl : null,
+          slug,
           prep_time: parseInt(prepTime) || 0,
           cook_time: parseInt(cookTime) || 0,
           servings: parseInt(servings) || 1,
@@ -140,11 +151,11 @@ export default function CreatePage() {
           likes_count: 0,
           author_id: user.id,
         })
-        .select('id')
+        .select('id, slug')
         .single()
 
       if (insertError) throw insertError
-      router.push(`/recipe/${recipe.id}`)
+      router.push(`/receta/${recipe.slug}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar la receta')
       setSubmitting(false)
