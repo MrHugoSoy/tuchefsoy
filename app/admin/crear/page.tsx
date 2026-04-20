@@ -141,13 +141,14 @@ export default function AdminCreatePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!user) return
     setError(null)
     setSubmitting(true)
 
     try {
       let imageUrl: string | null = null
 
-      if (imageFile) {
+      if (imageFile && user) {
         const ext = imageFile.name.split('.').pop()
         const path = `${user.id}/${Date.now()}.${ext}`
         const { error: uploadError } = await supabase.storage
