@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import RecipeCard from '@/components/recipe/RecipeCard'
 import ChefAssistant from '@/components/ai/ChefAssistant'
 import SortBar from '@/components/layout/SortBar'
@@ -6,6 +7,29 @@ import type { Recipe, Category } from '@/types'
 
 interface HomePageProps {
   searchParams: Promise<{ category?: string; q?: string; sort?: string }>
+}
+
+export async function generateMetadata({ searchParams }: HomePageProps): Promise<Metadata> {
+  const { category, q } = await searchParams
+
+  if (q?.trim()) {
+    return {
+      title: `Recetas de "${q.trim()}"`,
+      description: `Resultados de búsqueda para "${q.trim()}" en TuChefSoy.`,
+    }
+  }
+
+  if (category && category !== 'Todo') {
+    return {
+      title: `Recetas de ${category}`,
+      description: `Las mejores recetas de ${category.toLowerCase()} para cocinar hoy. Inspírate con TuChefSoy.`,
+    }
+  }
+
+  return {
+    title: 'TuChefSoy — Recetas fáciles para cocinar hoy',
+    description: 'Descubre recetas fáciles, saludables y rápidas. Filtra por categoría o deja que el Chef IA te sugiera qué preparar con lo que tienes en casa.',
+  }
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {

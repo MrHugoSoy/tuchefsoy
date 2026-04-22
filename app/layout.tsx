@@ -14,10 +14,28 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'TuChefSoy — Recetas para todos',
-  description: 'Descubre, comparte y crea recetas increíbles con la comunidad de TuChefSoy.',
+  metadataBase: new URL('https://tuchefsoy.com'),
+  title: {
+    default: 'TuChefSoy — Recetas fáciles para cocinar hoy',
+    template: '%s | TuChefSoy',
+  },
+  description: 'Recetas fáciles, saludables y rápidas para cocinar hoy. Encuentra inspiración por ingrediente, categoría o deja que nuestro Chef IA te sugiera qué preparar.',
+  keywords: ['recetas', 'recetas fáciles', 'recetas saludables', 'cocinar hoy', 'chef IA', 'ingredientes', 'comida'],
   icons: {
     icon: '/logo.svg',
+  },
+  openGraph: {
+    siteName: 'TuChefSoy',
+    locale: 'es_ES',
+    type: 'website',
+    title: 'TuChefSoy — Recetas fáciles para cocinar hoy',
+    description: 'Recetas fáciles, saludables y rápidas para cocinar hoy. Encuentra inspiración por ingrediente, categoría o deja que nuestro Chef IA te sugiera qué preparar.',
+    url: 'https://tuchefsoy.com',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TuChefSoy — Recetas fáciles para cocinar hoy',
+    description: 'Recetas fáciles, saludables y rápidas para cocinar hoy.',
   },
 }
 
@@ -31,6 +49,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-J1RF2NFE47"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-J1RF2NFE47');
+          `}
+        </Script>
       </head>
       <body className="min-h-full flex flex-col bg-white text-[#111]">
         <AuthProvider>

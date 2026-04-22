@@ -7,7 +7,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get all recipes
   const { data: recipes } = await supabase
     .from('recipes')
-    .select('id, updated_at')
+    .select('slug, updated_at')
+    .not('slug', 'is', null)
     .order('updated_at', { ascending: false })
 
   // Get all profiles
@@ -47,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Recipe pages
   const recipePages: MetadataRoute.Sitemap = (recipes ?? []).map((recipe) => ({
-    url: `${baseUrl}/recipe/${recipe.id}`,
+    url: `${baseUrl}/receta/${recipe.slug}`,
     lastModified: new Date(recipe.updated_at),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
