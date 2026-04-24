@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { ChefRecommendation } from '@/types'
+import { useAuth } from '@/context/AuthContext'
 
 type GeneratedRecipe = ChefRecommendation & { generated: true; full_recipe: string }
 
@@ -18,11 +19,14 @@ function matchColor(pct: number) {
 }
 
 export default function ChefAssistant() {
+  const { user, loading: authLoading, openModal } = useAuth()
+
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState<ChefRecommendation[] | null>(null)
   const [generatedRecipe, setGeneratedRecipe] = useState<GeneratedRecipe | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [remaining, setRemaining] = useState<number | null>(null)
 
   async function handleAsk() {
     const ingredients = inputValue.split(',').map((s) => s.trim()).filter(Boolean)
@@ -43,6 +47,7 @@ export default function ChefAssistant() {
       if (!res.ok) throw new Error(data.error ?? 'Error desconocido')
       setRecommendations(data.recommendations ?? [])
       setGeneratedRecipe(data.generatedRecipe ?? null)
+      if (typeof data.remaining === 'number') setRemaining(data.remaining)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al consultar al chef')
     } finally {
@@ -66,111 +71,147 @@ export default function ChefAssistant() {
 
       {/* Body */}
       <div className="p-5">
-        <label className="block text-xs font-medium text-[#555] mb-2">
-          Ingredientes disponibles (separados por coma)
-        </label>
-        <textarea
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="huevos, tomate, cebolla, queso..."
-          rows={3}
-          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleAsk() }}
-          className="w-full px-3 py-2.5 text-sm bg-[#f7f7f7] border border-border rounded-xl outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0] resize-none font-sans"
-        />
-
-        <button
-          onClick={handleAsk}
-          disabled={loading || !inputValue.trim()}
-          className="mt-3 w-full py-2.5 text-sm font-medium text-white bg-brand hover:bg-brand-hover disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              Analizando...
-            </>
-          ) : '¿Qué puedo cocinar?'}
-        </button>
-
-        {error && (
-          <div className="mt-4 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
-            {error}
+        {authLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <svg className="w-5 h-5 animate-spin text-brand" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
           </div>
-        )}
+        ) : !user ? (
+          <div className="flex flex-col items-center text-center py-4 gap-3">
+            <span className="text-3xl">🔒</span>
+            <p className="text-sm font-medium text-[#111]">Inicia sesión para usar el Chef IA</p>
+            <p className="text-xs text-muted">Gratis · 3 consultas al día</p>
+            <button
+              onClick={() => openModal('login')}
+              className="mt-1 w-full py-2.5 text-sm font-medium text-white bg-brand hover:bg-brand-hover rounded-xl transition-colors"
+            >
+              Iniciar sesión
+            </button>
+            <button
+              onClick={() => openModal('register')}
+              className="w-full py-2.5 text-sm font-medium text-brand border border-brand/30 hover:bg-[#fff5ee] rounded-xl transition-colors"
+            >
+              Crear cuenta gratis
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-medium text-[#555]">
+                Ingredientes disponibles (separados por coma)
+              </label>
+              {remaining !== null && (
+                <span className={`text-xs font-medium ${remaining === 0 ? 'text-red-500' : 'text-muted'}`}>
+                  {remaining} {remaining === 1 ? 'consulta restante' : 'consultas restantes'}
+                </span>
+              )}
+            </div>
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="huevos, tomate, cebolla, queso..."
+              rows={3}
+              onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleAsk() }}
+              className="w-full px-3 py-2.5 text-sm bg-[#f7f7f7] border border-border rounded-xl outline-none focus:border-brand focus:bg-white transition-colors placeholder:text-[#a0a0a0] resize-none font-sans"
+            />
 
-        {/* Resultados */}
-        {hasResults && (
-          <div className="mt-5">
-            {totalResults === 0 ? (
-              <p className="text-sm text-muted text-center py-3">
-                No encontré recetas con esos ingredientes. ¡Prueba con otros!
-              </p>
-            ) : (
-              <>
-                <p className="text-xs text-muted mb-3">
-                  {totalResults} sugerencia{totalResults !== 1 ? 's' : ''}
-                </p>
+            <button
+              onClick={handleAsk}
+              disabled={loading || !inputValue.trim() || remaining === 0}
+              className="mt-3 w-full py-2.5 text-sm font-medium text-white bg-brand hover:bg-brand-hover disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Analizando...
+                </>
+              ) : '¿Qué puedo cocinar?'}
+            </button>
 
-                <div className="flex flex-col gap-3">
-                  {/* Recetas existentes */}
-                  {recommendations?.map((rec) => (
-                    <Link
-                      key={rec.id}
-                      href={`/recipe/${rec.id}`}
-                      className="block p-3 rounded-xl border border-border hover:border-brand hover:bg-[#fff5ee] transition-colors group"
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <span className="text-sm font-medium text-[#111] group-hover:text-brand transition-colors leading-snug">
-                          {CATEGORY_EMOJI[rec.category] ?? '🍴'} {rec.title}
-                        </span>
-                        <span
-                          className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full text-white"
-                          style={{ backgroundColor: matchColor(rec.match_percentage) }}
-                        >
-                          {rec.match_percentage}%
-                        </span>
-                      </div>
-                      {rec.missing_ingredients.length > 0 && (
-                        <p className="text-xs text-muted">
-                          Falta: {rec.missing_ingredients.join(', ')}
-                        </p>
-                      )}
-                    </Link>
-                  ))}
-
-                  {/* Receta generada por IA */}
-                  {generatedRecipe && (
-                    <div className="p-3 rounded-xl border border-dashed border-brand bg-[#fff5ee]">
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <span className="text-sm font-medium text-[#111] leading-snug">
-                          ✨ {generatedRecipe.title}
-                        </span>
-                        <span
-                          className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full text-white"
-                          style={{ backgroundColor: matchColor(generatedRecipe.match_percentage) }}
-                        >
-                          {generatedRecipe.match_percentage}%
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#555] leading-relaxed mb-1.5">
-                        {generatedRecipe.full_recipe}
-                      </p>
-                      {generatedRecipe.missing_ingredients.length > 0 && (
-                        <p className="text-xs text-muted">
-                          Falta: {generatedRecipe.missing_ingredients.join(', ')}
-                        </p>
-                      )}
-                      <span className="inline-block mt-2 text-[10px] font-medium text-brand bg-white border border-brand/20 px-2 py-0.5 rounded-full">
-                        Receta generada por IA
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </>
+            {error && (
+              <div className="mt-4 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                {error}
+              </div>
             )}
-          </div>
+
+            {/* Resultados */}
+            {hasResults && (
+              <div className="mt-5">
+                {totalResults === 0 ? (
+                  <p className="text-sm text-muted text-center py-3">
+                    No encontré recetas con esos ingredientes. ¡Prueba con otros!
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted mb-3">
+                      {totalResults} sugerencia{totalResults !== 1 ? 's' : ''}
+                    </p>
+
+                    <div className="flex flex-col gap-3">
+                      {/* Recetas existentes */}
+                      {recommendations?.map((rec) => (
+                        <Link
+                          key={rec.id}
+                          href={`/receta/${rec.id}`}
+                          className="block p-3 rounded-xl border border-border hover:border-brand hover:bg-[#fff5ee] transition-colors group"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="text-sm font-medium text-[#111] group-hover:text-brand transition-colors leading-snug">
+                              {CATEGORY_EMOJI[rec.category] ?? '🍴'} {rec.title}
+                            </span>
+                            <span
+                              className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                              style={{ backgroundColor: matchColor(rec.match_percentage) }}
+                            >
+                              {rec.match_percentage}%
+                            </span>
+                          </div>
+                          {rec.missing_ingredients.length > 0 && (
+                            <p className="text-xs text-muted">
+                              Falta: {rec.missing_ingredients.join(', ')}
+                            </p>
+                          )}
+                        </Link>
+                      ))}
+
+                      {/* Receta generada por IA */}
+                      {generatedRecipe && (
+                        <div className="p-3 rounded-xl border border-dashed border-brand bg-[#fff5ee]">
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="text-sm font-medium text-[#111] leading-snug">
+                              ✨ {generatedRecipe.title}
+                            </span>
+                            <span
+                              className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                              style={{ backgroundColor: matchColor(generatedRecipe.match_percentage) }}
+                            >
+                              {generatedRecipe.match_percentage}%
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#555] leading-relaxed mb-1.5">
+                            {generatedRecipe.full_recipe}
+                          </p>
+                          {generatedRecipe.missing_ingredients.length > 0 && (
+                            <p className="text-xs text-muted">
+                              Falta: {generatedRecipe.missing_ingredients.join(', ')}
+                            </p>
+                          )}
+                          <span className="inline-block mt-2 text-[10px] font-medium text-brand bg-white border border-brand/20 px-2 py-0.5 rounded-full">
+                            Receta generada por IA
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

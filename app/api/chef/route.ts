@@ -16,30 +16,24 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Get user ID if logged in
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Get IP for rate limiting
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-      ?? request.headers.get('x-real-ip')
-      ?? 'unknown'
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Debes iniciar sesión para usar el Chef IA.' },
+        { status: 401 }
+      )
+    }
 
     // Check daily usage
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    let usageQuery = supabase
+    const { count } = await supabase
       .from('chef_usage')
       .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('created_at', today.toISOString())
-
-    if (user) {
-      usageQuery = usageQuery.eq('user_id', user.id)
-    } else {
-      usageQuery = usageQuery.eq('user_ip', ip)
-    }
-
-    const { count } = await usageQuery
 
     if ((count ?? 0) >= DAILY_LIMIT) {
       return NextResponse.json({
@@ -49,8 +43,8 @@ export async function POST(request: NextRequest) {
 
     // Log usage
     await supabase.from('chef_usage').insert({
-      user_ip: ip,
-      user_id: user?.id ?? null,
+      user_ip: null,
+      user_id: user.id,
     })
 
     // Fetch recipes from database
@@ -134,7 +128,11 @@ Crea una receta original y deliciosa.`,
       generatedRecipe = { ...parsed, id: 'ai-generated', generated: true }
     }
 
-    return NextResponse.json({ recommendations: recommendations ?? [], generatedRecipe })
+    return NextResponse.json({
+      recommendations: recommendations ?? [],
+      generatedRecipe,
+      remaining: DAILY_LIMIT - (count ?? 0) - 1,
+    })
   } catch (err) {
     console.error('[/api/chef]', err)
     return NextResponse.json(
