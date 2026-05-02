@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import RecipeCard from '@/components/recipe/RecipeCard'
+import RecipeFeed from '@/components/recipe/RecipeFeed'
 import ChefAssistant from '@/components/ai/ChefAssistant'
 import SortBar from '@/components/layout/SortBar'
 import { createClient } from '@/lib/supabase-server'
@@ -69,7 +69,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   if (searchQuery) {
     heading = `Resultados para "${searchQuery}"`
-    subheading = `${feed.length} ${feed.length === 1 ? 'receta encontrada' : 'recetas encontradas'}`
+    subheading = 'Recetas encontradas'
   } else if (activeCategory !== 'Todo') {
     heading = activeCategory
     subheading = `Recetas de ${activeCategory.toLowerCase()} para inspirarte`
@@ -92,16 +92,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <p className="text-sm text-muted">{subheading}</p>
           </div>
 
-          {/* Grid estilo Pinterest */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
-            {feed.map((recipe) => (
-              <div key={recipe.id} className="break-inside-avoid">
-                <RecipeCard recipe={recipe} />
-              </div>
-            ))}
-          </div>
-
-          {feed.length === 0 && (
+          {feed.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-16 h-16 rounded-full bg-[#fff5ee] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,6 +116,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                     : 'Prueba con otra categoría o sé el primero en publicar aquí.'}
               </p>
             </div>
+          ) : (
+            <RecipeFeed
+              key={`${activeCategory}-${searchQuery}-${activeSort}`}
+              initialRecipes={feed}
+              category={activeCategory}
+              q={searchQuery}
+              sort={activeSort}
+            />
           )}
         </div>
 
