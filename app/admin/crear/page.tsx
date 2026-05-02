@@ -132,10 +132,20 @@ export default function AdminCreatePage() {
 
     for (const recipe of bulkParsed) {
       try {
+        const slug = recipe.title
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+
         const { data, error } = await supabase.from('recipes').insert({
           title: recipe.title,
           description: recipe.description || null,
           image_url: null,
+          slug,
           prep_time: parseInt(recipe.prepTime) || 0,
           cook_time: parseInt(recipe.cookTime) || 0,
           servings: parseInt(recipe.servings) || 1,
@@ -184,8 +194,18 @@ export default function AdminCreatePage() {
         imageUrl = publicUrl
       }
       const tagList = tags.split(',').map(t => t.trim()).filter(Boolean)
+      const slug = title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+
       const { data: recipe, error: insertError } = await supabase.from('recipes').insert({
         title, description: description || null, image_url: imageUrl,
+        slug,
         prep_time: parseInt(prepTime) || 0, cook_time: parseInt(cookTime) || 0,
         servings: parseInt(servings) || 1, difficulty, category,
         ingredients: ingredients.filter(i => i.name.trim()),
