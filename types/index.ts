@@ -56,6 +56,7 @@ export interface RecipeComment {
 }
 export interface ChefRecommendation {
   id: string
+  slug: string | null
   title: string
   match_percentage: number
   missing_ingredients: string[]

@@ -254,7 +254,7 @@ export default function ChefAssistant() {
                       {recommendations?.map((rec) => (
                         <Link
                           key={rec.id}
-                          href={`/receta/${rec.id}`}
+                          href={rec.slug ? `/receta/${rec.slug}` : `/recipe/${rec.id}`}
                           className="group flex items-start gap-3 p-3 rounded-xl border border-[#f0f0f0] hover:border-brand/30 hover:bg-[#fff8f5] transition-all"
                         >
                           <div className="shrink-0 w-8 h-8 rounded-lg bg-[#f7f7f7] flex items-center justify-center text-sm">

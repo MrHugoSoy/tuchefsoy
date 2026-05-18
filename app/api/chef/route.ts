@@ -25,33 +25,57 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check daily usage
+    // Check daily usage — usar select en lugar de count para detectar errores
     const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    today.setUTCHours(0, 0, 0, 0)
 
-    const { count } = await supabase
+    const { data: usageRows, error: countError } = await supabase
       .from('chef_usage')
-      .select('id', { count: 'exact', head: true })
+      .select('id')
       .eq('user_id', user.id)
       .gte('created_at', today.toISOString())
 
-    if ((count ?? 0) >= DAILY_LIMIT) {
+    if (countError) {
+      console.error('[chef] Error al verificar uso:', countError.message)
+      return NextResponse.json(
+        { error: 'Error al verificar el límite de uso. Intenta de nuevo.' },
+        { status: 500 }
+      )
+    }
+
+    const usageCount = usageRows?.length ?? 0
+
+    if (usageCount >= DAILY_LIMIT) {
       return NextResponse.json({
         error: `Has alcanzado el límite de ${DAILY_LIMIT} consultas diarias. ¡Vuelve mañana!`,
       }, { status: 429 })
     }
 
-    // Log usage
-    await supabase.from('chef_usage').insert({
-      user_ip: null,
+    // Registrar uso — verificar que se inserta correctamente
+    const { error: insertError } = await supabase.from('chef_usage').insert({
       user_id: user.id,
     })
 
-    // Fetch recipes from database
+    if (insertError) {
+      console.error('[chef] Error al registrar uso:', insertError.message)
+      // Si no se puede registrar, bloqueamos para evitar bypass
+      return NextResponse.json(
+        { error: 'Error al registrar el uso. Intenta de nuevo.' },
+        { status: 500 }
+      )
+    }
+
+    // Fetch recipes — incluir slug para construir el link correcto
     const { data: recipes } = await supabase
       .from('recipes')
-      .select('id, title, ingredients, category')
+      .select('id, title, slug, ingredients, category')
       .limit(60)
+
+    // Mapa id → slug para enriquecer las recomendaciones
+    const slugMap: Record<string, string | null> = {}
+    for (const r of recipes ?? []) {
+      slugMap[r.id] = r.slug ?? null
+    }
 
     const userIngredients = ingredients.join(', ')
 
@@ -62,7 +86,7 @@ export async function POST(request: NextRequest) {
       })
       .join('\n')
 
-    // ── First call: match existing recipes ──────────────────────────────────
+    // ── Primera llamada: buscar recetas existentes ──────────────────────────
     const matchMessage = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
@@ -90,12 +114,18 @@ Devuelve el JSON.`,
 
     const rawMatch = matchMessage.content[0].type === 'text' ? matchMessage.content[0].text.trim() : '{}'
     const jsonMatch = rawMatch.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-    const { recommendations, generate_new } = JSON.parse(jsonMatch) as {
-      recommendations: ChefRecommendation[]
+    const { recommendations: rawRecommendations, generate_new } = JSON.parse(jsonMatch) as {
+      recommendations: Omit<ChefRecommendation, 'slug'>[]
       generate_new: boolean
     }
 
-    // ── Second call: generate a new recipe if needed ─────────────────────────
+    // Enriquecer recomendaciones con slug
+    const recommendations: ChefRecommendation[] = (rawRecommendations ?? []).map((rec) => ({
+      ...rec,
+      slug: slugMap[rec.id] ?? null,
+    }))
+
+    // ── Segunda llamada: generar receta nueva si hace falta ─────────────────
     let generatedRecipe: (ChefRecommendation & { generated: true; full_recipe: string }) | null = null
 
     if (generate_new) {
@@ -125,13 +155,13 @@ Crea una receta original y deliciosa.`,
       const rawGen = genMessage.content[0].type === 'text' ? genMessage.content[0].text.trim() : '{}'
       const jsonGen = rawGen.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
       const parsed = JSON.parse(jsonGen)
-      generatedRecipe = { ...parsed, id: 'ai-generated', generated: true }
+      generatedRecipe = { ...parsed, id: 'ai-generated', slug: null, generated: true }
     }
 
     return NextResponse.json({
-      recommendations: recommendations ?? [],
+      recommendations,
       generatedRecipe,
-      remaining: DAILY_LIMIT - (count ?? 0) - 1,
+      remaining: DAILY_LIMIT - usageCount - 1,
     })
   } catch (err) {
     console.error('[/api/chef]', err)
