@@ -83,13 +83,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div>
           {/* Header: en móvil apilado, en desktop lado a lado */}
           <div className="mb-5 sm:mb-7">
-            <div className="flex items-start justify-between gap-3 mb-1">
-              <h1 className="text-xl sm:text-2xl font-semibold leading-tight">{heading}</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold leading-tight mb-2">{heading}</h1>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm text-muted">{subheading}</p>
               <div className="shrink-0">
                 <SortBar activeSort={activeSort} />
               </div>
             </div>
-            <p className="text-sm text-muted">{subheading}</p>
           </div>
 
           {feed.length === 0 ? (

@@ -288,7 +288,7 @@ export default function CreatePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div>
               <label className="form-label">Prep. (min)</label>
               <input type="number" min={0} value={prepTime} onChange={(e) => setPrepTime(e.target.value)} placeholder="15" className="form-input mt-1" />
@@ -311,25 +311,36 @@ export default function CreatePage() {
             <h2 className="form-label text-base font-semibold">Ingredientes</h2>
             <button type="button" onClick={addIngredient} className="text-sm text-brand hover:underline font-medium">+ Añadir</button>
           </div>
-          <div className="flex gap-2 mb-1 px-0.5">
+          <div className="hidden sm:flex gap-2 mb-1 px-0.5">
             <span className="flex-1 text-xs text-muted">Nombre</span>
             <span className="w-24 shrink-0 text-xs text-muted">Cantidad</span>
             <span className="w-20 shrink-0 text-xs text-muted">Unidad</span>
             {ingredients.length > 1 && <span className="w-7 shrink-0" />}
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {ingredients.map((ing, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <input type="text" placeholder="ej: Tomate" value={ing.name} onChange={(e) => updateIngredient(i, 'name', e.target.value)} className="ing-input flex-1" />
-                <input type="text" placeholder="2" value={ing.amount} onChange={(e) => updateIngredient(i, 'amount', e.target.value)} className="ing-input w-24 shrink-0" />
-                <input type="text" placeholder="kg, tazas…" value={ing.unit} onChange={(e) => updateIngredient(i, 'unit', e.target.value)} className="ing-input w-20 shrink-0" />
-                {ingredients.length > 1 && (
-                  <button type="button" onClick={() => removeIngredient(i)} className="shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
+              <div key={i} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                <div className="flex gap-2 items-center">
+                  <input type="text" placeholder="Nombre del ingrediente" value={ing.name} onChange={(e) => updateIngredient(i, 'name', e.target.value)} className="ing-input flex-1" />
+                  {ingredients.length > 1 && (
+                    <button type="button" onClick={() => removeIngredient(i)} className="sm:hidden shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input type="text" placeholder="Cantidad" value={ing.amount} onChange={(e) => updateIngredient(i, 'amount', e.target.value)} className="ing-input flex-1 sm:w-24 sm:flex-none" />
+                  <input type="text" placeholder="Unidad" value={ing.unit} onChange={(e) => updateIngredient(i, 'unit', e.target.value)} className="ing-input flex-1 sm:w-20 sm:flex-none" />
+                  {ingredients.length > 1 && (
+                    <button type="button" onClick={() => removeIngredient(i)} className="hidden sm:flex shrink-0 p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
