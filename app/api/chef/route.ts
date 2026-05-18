@@ -52,8 +52,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Registrar uso — verificar que se inserta correctamente
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      ?? request.headers.get('x-real-ip')
+      ?? 'unknown'
+
     const { error: insertError } = await supabase.from('chef_usage').insert({
       user_id: user.id,
+      user_ip: ip,
     })
 
     if (insertError) {
