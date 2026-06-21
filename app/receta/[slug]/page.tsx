@@ -6,6 +6,7 @@ import LikeButton from '@/components/recipe/LikeButton'
 import CommentSection from '@/components/recipe/CommentSection'
 import SharePrintButtons from '@/components/recipe/SharePrintButtons'
 import StarRating from '@/components/recipe/StarRating'
+import InArticleAd from '@/components/ads/InArticleAd'
 import type { Recipe } from '@/types'
 import type { Metadata } from 'next'
 
@@ -183,6 +184,8 @@ export default async function RecipeSlugPage({ params }: { params: Promise<{ slu
                 </ul>
               </section>
             )}
+
+            {!youtubeId && <InArticleAd />}
 
             {!youtubeId && r.steps.length > 0 && (
               <section className="mb-10">

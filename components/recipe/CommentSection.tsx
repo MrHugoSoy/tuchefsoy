@@ -26,14 +26,17 @@ export default function CommentSection({ recipeId, recipeTitle, recipeAuthorId }
   const [comments, setComments] = useState<RecipeComment[]>([])
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
 
   useEffect(() => {
+    setFetchError(false)
     supabase
       .from('recipe_comments')
       .select('*, author:profiles(*)')
       .eq('recipe_id', recipeId)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { setFetchError(true); return }
         if (data) setComments(data as RecipeComment[])
       })
   }, [recipeId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -107,7 +110,10 @@ export default function CommentSection({ recipeId, recipeTitle, recipeAuthorId }
       </form>
 
       <div className="flex flex-col gap-5">
-        {comments.length === 0 && (
+        {fetchError && (
+          <p className="text-sm text-muted text-center py-6">No se pudieron cargar los comentarios. Recarga la página.</p>
+        )}
+        {!fetchError && comments.length === 0 && (
           <p className="text-sm text-muted text-center py-6">Sé el primero en comentar.</p>
         )}
         {comments.map((c) => (

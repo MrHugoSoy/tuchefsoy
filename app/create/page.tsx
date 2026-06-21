@@ -122,8 +122,8 @@ export default function CreatePage() {
       const cleanIngredients = ingredients.filter((i) => i.name.trim())
       const cleanSteps = steps.filter((s) => s.trim())
 
-      // Generar slug
-      const slug = title
+      // Generar slug \u00fanico
+      const baseSlug = title
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -131,6 +131,14 @@ export default function CreatePage() {
         .trim()
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
+
+      let slug = baseSlug
+      let counter = 1
+      while (true) {
+        const { data: existing } = await supabase.from('recipes').select('id').eq('slug', slug).maybeSingle()
+        if (!existing) break
+        slug = `${baseSlug}-${++counter}`
+      }
 
       const { data: recipe, error: insertError } = await supabase
         .from('recipes')

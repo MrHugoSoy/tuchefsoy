@@ -6,6 +6,7 @@ import LikeButton from '@/components/recipe/LikeButton'
 import CommentSection from '@/components/recipe/CommentSection'
 import SharePrintButtons from '@/components/recipe/SharePrintButtons'
 import StarRating from '@/components/recipe/StarRating'
+import InArticleAd from '@/components/ads/InArticleAd'
 import type { Recipe } from '@/types'
 import type { Metadata } from 'next'
 
@@ -224,6 +225,8 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
                 </ul>
               </section>
             )}
+
+            {!youtubeId && <InArticleAd />}
 
             {!youtubeId && (
               <section className="mb-10">

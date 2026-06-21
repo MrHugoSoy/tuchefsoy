@@ -119,9 +119,17 @@ Devuelve el JSON.`,
 
     const rawMatch = matchMessage.content[0].type === 'text' ? matchMessage.content[0].text.trim() : '{}'
     const jsonMatch = rawMatch.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-    const { recommendations: rawRecommendations, generate_new } = JSON.parse(jsonMatch) as {
-      recommendations: Omit<ChefRecommendation, 'slug'>[]
-      generate_new: boolean
+    let rawRecommendations: Omit<ChefRecommendation, 'slug'>[] = []
+    let generate_new = false
+    try {
+      const parsed = JSON.parse(jsonMatch) as {
+        recommendations: Omit<ChefRecommendation, 'slug'>[]
+        generate_new: boolean
+      }
+      rawRecommendations = parsed.recommendations ?? []
+      generate_new = parsed.generate_new ?? true
+    } catch {
+      generate_new = true
     }
 
     // Enriquecer recomendaciones con slug
@@ -159,8 +167,12 @@ Crea una receta original y deliciosa.`,
 
       const rawGen = genMessage.content[0].type === 'text' ? genMessage.content[0].text.trim() : '{}'
       const jsonGen = rawGen.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-      const parsed = JSON.parse(jsonGen)
-      generatedRecipe = { ...parsed, id: 'ai-generated', slug: null, generated: true }
+      try {
+        const parsed = JSON.parse(jsonGen)
+        generatedRecipe = { ...parsed, id: 'ai-generated', slug: null, generated: true }
+      } catch {
+        // Si Claude devuelve JSON inválido, simplemente no hay receta generada
+      }
     }
 
     return NextResponse.json({

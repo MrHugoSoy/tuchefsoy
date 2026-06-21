@@ -79,10 +79,8 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     setLikes((l) => l + (nextLiked ? 1 : -1))
     if (nextLiked) {
       await supabase.from('recipe_likes').insert({ recipe_id: recipe.id, user_id: user.id })
-      await supabase.from('recipes').update({ likes_count: likes + 1 }).eq('id', recipe.id)
     } else {
       await supabase.from('recipe_likes').delete().eq('recipe_id', recipe.id).eq('user_id', user.id)
-      await supabase.from('recipes').update({ likes_count: likes - 1 }).eq('id', recipe.id)
     }
     setLoading(false)
   }
@@ -116,6 +114,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     }
     await supabase.from('recipe_likes').delete().eq('recipe_id', recipe.id)
     await supabase.from('recipe_comments').delete().eq('recipe_id', recipe.id)
+    await supabase.from('recipe_favorites').delete().eq('recipe_id', recipe.id)
     await supabase.from('recipes').delete().eq('id', recipe.id)
     setDeleting(false)
     setMenuOpen(false)

@@ -20,13 +20,17 @@ export async function GET(request: NextRequest) {
 
       if (!existing) {
         const meta = data.user.user_metadata
-        await supabase.from('profiles').insert({
+        const { error: profileError } = await supabase.from('profiles').insert({
           id: data.user.id,
           username: meta?.preferred_username ?? meta?.name?.toLowerCase().replace(/\s+/g, '_') ?? data.user.email?.split('@')[0],
           full_name: meta?.full_name ?? meta?.name ?? null,
           avatar_url: meta?.avatar_url ?? null,
           bio: null,
         })
+        if (profileError) {
+          console.error('[auth/callback] Error al crear perfil:', profileError.message)
+          return NextResponse.redirect(`${origin}/?error=profile`)
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`)

@@ -47,12 +47,17 @@ export default function StarRating({ recipeId, initialAvg, initialCount }: StarR
     const hadPreviousRating = userRating > 0
 
     // Upsert the rating
-    await supabase
+    const { error: upsertError } = await supabase
       .from('recipe_ratings')
       .upsert(
         { recipe_id: recipeId, user_id: user.id, rating },
         { onConflict: 'recipe_id,user_id' }
       )
+
+    if (upsertError) {
+      setLoading(false)
+      return
+    }
 
     // Recalculate average
     const { data: allRatings } = await supabase
