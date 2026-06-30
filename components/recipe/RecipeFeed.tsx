@@ -55,16 +55,12 @@ export default function RecipeFeed({ initialRecipes, category, q, sort }: Recipe
 
   return (
     <>
-      <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
-        {recipes.map((recipe) => (
-          <div key={recipe.id} className="break-inside-avoid">
-            <RecipeCard recipe={recipe} />
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {recipes.map((recipe, index) => (
+          <RecipeCard key={recipe.id} recipe={recipe} priority={index < 4} />
         ))}
         {loading && Array.from({ length: 4 }).map((_, i) => (
-          <div key={`sk-${i}`} className="break-inside-avoid">
-            <RecipeCardSkeleton />
-          </div>
+          <RecipeCardSkeleton key={`sk-${i}`} />
         ))}
       </div>
 

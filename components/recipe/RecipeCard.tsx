@@ -11,6 +11,7 @@ import type { Recipe } from '@/types'
 
 interface RecipeCardProps {
   recipe: Recipe
+  priority?: boolean
 }
 
 const DIFFICULTY_COLOR: Record<Recipe['difficulty'], string> = {
@@ -25,7 +26,7 @@ function formatViews(n: number): string {
   return String(n)
 }
 
-export default function RecipeCard({ recipe }: RecipeCardProps) {
+export default function RecipeCard({ recipe, priority = false }: RecipeCardProps) {
   const { user, openModal } = useAuth()
   const router = useRouter()
   const supabase = createClient()
@@ -145,7 +146,8 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             src={recipe.image_url}
             alt={recipe.title}
             fill
-            loading="lazy"
+            priority={priority}
+            loading={priority ? undefined : 'lazy'}
             className={`object-cover group-hover:scale-105 transition-all duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 380px"
             onLoad={() => setImgLoaded(true)}
