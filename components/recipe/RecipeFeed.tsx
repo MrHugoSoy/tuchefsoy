@@ -60,12 +60,7 @@ export default function RecipeFeed({ initialRecipes, category, q, sort }: Recipe
         {recipes.flatMap((recipe, index) => {
           const card = <RecipeCard key={recipe.id} recipe={recipe} priority={index < 4} />
           if ((index + 1) % 8 === 0) {
-            return [
-              card,
-              <div key={`ad-${index}`} className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
-                <InFeedAd />
-              </div>,
-            ]
+            return [card, <InFeedAd key={`ad-${index}`} />]
           }
           return [card]
         })}
