@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import LikeButton from '@/components/recipe/LikeButton'
 import CommentSection from '@/components/recipe/CommentSection'
@@ -38,6 +38,9 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
   if (error || !recipe) notFound()
 
   const r = recipe as Recipe
+
+  if (r.slug) permanentRedirect(`/receta/${r.slug}`)
+
   await supabase.from('recipes').update({ views_count: (r.views_count ?? 0) + 1 }).eq('id', id)
 
   const { data: { user } } = await supabase.auth.getUser()

@@ -6,6 +6,39 @@ import RecipeCard from '@/components/recipe/RecipeCard'
 import EditProfileButton from '@/components/profile/EditProfileButton'
 import FollowButton from '@/components/profile/FollowButton'
 import type { Recipe, Profile } from '@/types'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  const supabase = await createClient()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username, full_name, bio, avatar_url')
+    .eq('username', decodeURIComponent(username))
+    .single()
+
+  if (!profile) return { title: 'Perfil no encontrado' }
+
+  const displayName = profile.full_name ?? profile.username
+  const title = `${displayName} (@${profile.username})`
+  const description = profile.bio ?? `Descubre las recetas de ${displayName} en TuChefSoy.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} — TuChefSoy`,
+      description,
+      ...(profile.avatar_url && { images: [{ url: profile.avatar_url, width: 400, height: 400, alt: displayName }] }),
+    },
+    twitter: {
+      card: 'summary',
+      title: `${title} — TuChefSoy`,
+      description,
+      ...(profile.avatar_url && { images: [profile.avatar_url] }),
+    },
+  }
+}
 
 function memberSince(date: string) {
   const d = new Date(date)
@@ -193,11 +226,9 @@ export default async function ProfilePage({
 
       {/* Content */}
       {displayList.length > 0 ? (
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {displayList.map((recipe) => (
-            <div key={recipe.id} className="break-inside-avoid">
-              <RecipeCard recipe={recipe} />
-            </div>
+            <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </div>
       ) : (

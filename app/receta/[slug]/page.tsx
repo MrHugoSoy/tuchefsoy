@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = recipe.description ?? `Receta de ${recipe.category} en TuChefSoy`
   return {
     title, description,
+    alternates: { canonical: `https://tuchefsoy.com/receta/${slug}` },
     openGraph: { title, description, type: 'article', siteName: 'TuChefSoy', ...(recipe.image_url && { images: [{ url: recipe.image_url, width: 1200, height: 630, alt: recipe.title }] }) },
     twitter: { card: 'summary_large_image', title, description, ...(recipe.image_url && { images: [recipe.image_url] }) },
   }

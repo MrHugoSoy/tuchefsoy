@@ -1,3 +1,14 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Política de Privacidad',
+  description: 'Conoce cómo TuChefSoy recopila, usa y protege tu información personal.',
+  openGraph: {
+    title: 'Política de Privacidad — TuChefSoy',
+    description: 'Conoce cómo TuChefSoy recopila, usa y protege tu información personal.',
+  },
+}
+
 export default function PrivacidadPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">

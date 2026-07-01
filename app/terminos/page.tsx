@@ -1,3 +1,14 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Términos y Condiciones',
+  description: 'Lee los términos y condiciones de uso de TuChefSoy, la plataforma de recetas de cocina.',
+  openGraph: {
+    title: 'Términos y Condiciones — TuChefSoy',
+    description: 'Lee los términos y condiciones de uso de TuChefSoy.',
+  },
+}
+
 export default function TerminosPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">

@@ -18,6 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const baseUrl = 'https://tuchefsoy.com'
 
+  const CATEGORIES = ['desayunos', 'comidas', 'cenas', 'postres', 'bebidas', 'vegano', 'sin-gluten', 'snacks']
+
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -26,6 +28,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 1,
     },
+    {
+      url: `${baseUrl}/chef-ia`,
+      lastModified: new Date('2026-04-01'),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    ...CATEGORIES.map((slug) => ({
+      url: `${baseUrl}/categoria/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    })),
     {
       url: `${baseUrl}/privacidad`,
       lastModified: new Date('2026-04-01'),
