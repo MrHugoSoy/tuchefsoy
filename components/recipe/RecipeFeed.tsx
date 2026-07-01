@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import RecipeCard from '@/components/recipe/RecipeCard'
 import RecipeCardSkeleton from '@/components/recipe/RecipeCardSkeleton'
+import InFeedAd from '@/components/ads/InFeedAd'
 import type { Recipe } from '@/types'
 
 interface RecipeFeedProps {
@@ -56,9 +57,18 @@ export default function RecipeFeed({ initialRecipes, category, q, sort }: Recipe
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {recipes.map((recipe, index) => (
-          <RecipeCard key={recipe.id} recipe={recipe} priority={index < 4} />
-        ))}
+        {recipes.flatMap((recipe, index) => {
+          const card = <RecipeCard key={recipe.id} recipe={recipe} priority={index < 4} />
+          if ((index + 1) % 8 === 0) {
+            return [
+              card,
+              <div key={`ad-${index}`} className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
+                <InFeedAd />
+              </div>,
+            ]
+          }
+          return [card]
+        })}
         {loading && Array.from({ length: 4 }).map((_, i) => (
           <RecipeCardSkeleton key={`sk-${i}`} />
         ))}
